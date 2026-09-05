@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: seat-sync
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: seat-sync-db
+          property: connectionString
+
+databases:
+  - name: seat-sync-db
+    plan: free

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Classroom Map · CHAIR-MATCH{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="classroom-page">
+    <div class="page-header">
+      <h1>🏫 Classroom Map</h1>
+      <p>Click any chair to see its compatibility. Green means go.</p>
+    </div>
+
+    {% if classrooms %}
+    <div class="classroom-selector">
+      {% for c in classrooms %}
+      <a href="{{ url_for('classroom', classroom_id=c.id) }}" class="classroom-tab {% if selected and selected.id==c.id %}active{% endif %}">{{ c.name }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if selected %}
+    <div class="classroom-legend">
+      <span class="legend-item"><span class="legend-dot available"></span>Available</span>
+      <span class="legend-item"><span class="legend-dot reserved"></span>Reserved</span>
+      <span class="legend-item"><span class="legend-dot mine"></span>Your Chair</span>
+      <span class="legend-item"><span class="legend-dot high-compat"></span>High Match</span>
+    </div>
+
+    <div class="classroom-wrap">
+      <div class="board-label">📋 TEACHER / BOARD</div>
+      <div class="classroom-grid" style="grid-template-columns: repeat({{ selected.columns }}, 1fr)">
+        {% set chairs_by_pos = {} %}
+        {% for chair in selected.chairs %}
+          {% set _ = chairs_by_pos.update({(chair.row, chair.col): chair}) %}
+        {% endfor %}
+        {% for r in range(1, selected.rows+1) %}
+          {% for c in range(1, selected.columns+1) %}
+            {% set chair = chairs_by_pos.get((r,c)) %}
+            {% if chair %}
+              {% set data = chair_data.get(chair.id, {}) %}
+              {% set compat = data.get('compat', 0) %}
+              {% set is_reserved = data.get('reserved', false) %}
+              {% set is_mine = data.get('mine', false) %}
+              <a href="{{ url_for('chair_detail', chair_id=chair.id) }}"
+                 class="chair-cell {% if is_mine %}mine{% elif is_reserved %}reserved{% elif compat >= 80 %}high-compat{% elif compat >= 60 %}mid-compat{% else %}low-compat{% endif %}"
+                 title="Chair {{ chair.chair_code }} — {{ compat }}% match">
+                <span class="cell-code">{{ chair.chair_code }}</span>
+                <span class="cell-compat">{{ compat }}%</span>
+                {% if chair.charging %}<span class="cell-charging">⚡</span>{% endif %}
+              </a>
+            {% else %}
+              <div class="chair-cell empty"></div>
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+      </div>
+      <div class="window-label">🪟 WINDOW</div>
+    </div>
+
+    <div class="heatmap-section">
+      <h2>Classroom Heatmap</h2>
+      <div class="heatmap-controls">
+        <label>Filter by:</label>
+        <select id="heatMetric" onchange="loadHeatmap()">
+          <option value="popularity">Popularity</option>
+          <option value="window">Window</option>
+          <option value="ac">AC</option>
+          <option value="visibility">Teacher Avoidance</option>
+          <option value="charging">Charging</option>
+          <option value="comfort">Comfort</option>
+        </select>
+      </div>
+      <div class="heatmap-grid" id="heatmapGrid" style="grid-template-columns: repeat({{ selected.columns }}, 1fr)"></div>
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No classrooms found. Ask an admin to add one.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/classroom.js') }}"></script>
+<script>const CLASSROOM_ID = {{ selected.id if selected else 'null' }};</script>
+<script>if(CLASSROOM_ID) loadHeatmap();</script>
+{% endblock %}

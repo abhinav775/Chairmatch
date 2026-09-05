@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Discover · CHAIR-MATCH{% endblock %}
+{% block content %}
+<div class="discover-page">
+  <div class="discover-header">
+    <h1>💘 Discover Chairs</h1>
+    <p>We analyzed {{ chairs|length }} chairs. This is getting serious.</p>
+  </div>
+
+  <div class="swipe-container" id="swipeContainer">
+    {% if chairs %}
+      {% for item in chairs %}
+      <div class="swipe-card {% if loop.index > 3 %}hidden{% endif %}" data-chair-id="{{ item.chair.id }}" data-compat="{{ item.compat }}" style="z-index:{{ 100 - loop.index0 }}">
+        <div class="card-header">
+          <div class="chair-avatar">💺</div>
+          <div class="chair-info">
+            <h2>Chair {{ item.chair.chair_code }}</h2>
+            <p>{{ item.chair.classroom.name }} · {% if item.chair.row <= 2 %}Front Row{% elif item.chair.row <= 4 %}Middle Row{% else %}Back Row{% endif %}</p>
+          </div>
+        </div>
+        <div class="compat-display">
+          <div class="compat-circle {% if item.compat >= 85 %}compat-high{% elif item.compat >= 60 %}compat-mid{% else %}compat-low{% endif %}">
+            <span class="compat-num">{{ item.compat }}%</span>
+            <span class="compat-label">MATCH</span>
+          </div>
+          {% if item.compat >= 90 %}
+          <div class="match-badge">❤️ YOUR TYPE</div>
+          {% elif item.compat >= 70 %}
+          <div class="match-badge match-good">✨ GOOD MATCH</div>
+          {% else %}
+          <div class="match-badge match-low">🤔 MAYBE</div>
+          {% endif %}
+        </div>
+        <div class="card-breakdown">
+          <div class="breakdown-item"><span>🪟</span><span>Window</span><span>{{ item.breakdown.window|int }}%</span></div>
+          <div class="breakdown-item"><span>❄️</span><span>AC</span><span>{{ item.breakdown.ac|int }}%</span></div>
+          <div class="breakdown-item"><span>👀</span><span>Visibility</span><span>{{ item.breakdown.visibility|int }}%</span></div>
+          <div class="breakdown-item"><span>⚡</span><span>Charging</span><span>{{ item.breakdown.charging|int }}%</span></div>
+        </div>
+        <div class="card-tags">
+          {% if item.chair.window_score >= 7 %}<span class="tag">🪟 Window Seat</span>{% endif %}
+          {% if item.chair.ac_score >= 7 %}<span class="tag">❄️ Good AC</span>{% endif %}
+          {% if item.chair.charging %}<span class="tag">⚡ Charging</span>{% endif %}
+          {% if item.chair.row >= 5 %}<span class="tag">🦥 Back Row</span>{% endif %}
+          {% if item.chair.visibility_score >= 7 %}<span class="tag">🥷 Low Visibility</span>{% endif %}
+        </div>
+        <div class="card-actions">
+          <button class="btn-dislike" onclick="swipeCard({{ item.chair.id }},'dislike')"><i class="fa fa-times"></i> NOPE</button>
+          <a href="{{ url_for('chair_detail', chair_id=item.chair.id) }}" class="btn-info"><i class="fa fa-info"></i></a>
+          <button class="btn-like" onclick="swipeCard({{ item.chair.id }},'like')"><i class="fa fa-heart"></i> LIKE</button>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">💔</div>
+        <h2>You've seen all the chairs.</h2>
+        <p>Every chair has found someone. Tough luck.</p>
+        <a href="{{ url_for('classroom') }}" class="btn btn-primary">View Classroom Map</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <div id="matchModal" class="modal hidden">
+    <div class="modal-content match-modal">
+      <div class="match-hearts">❤️</div>
+      <h2>IT'S A MATCH!</h2>
+      <p id="matchMsg">This chair has a lot in common with you.</p>
+      <div class="modal-actions">
+        <button onclick="closeModal()" class="btn btn-outline">Keep Swiping</button>
+        <button onclick="reserveFromModal()" class="btn btn-primary">💺 Reserve It</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/swipe.js') }}"></script>
+{% endblock %}

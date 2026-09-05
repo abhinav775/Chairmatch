@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Your Personality · CHAIR-MATCH{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="personality-page">
+    <div class="personality-hero">
+      <div class="personality-icon">{{ persona[0] }}</div>
+      <h1>{{ persona[1] }}</h1>
+      <p class="personality-desc">{{ persona[2] }}</p>
+      <div class="personality-badge">Your Seating Personality</div>
+    </div>
+
+    <div class="personality-stats">
+      <h2>Your Seating DNA</h2>
+      <p class="section-sub">Compatibility calculated. Emotional attachment pending.</p>
+      <div class="stat-bars">
+        <div class="stat-bar-item">
+          <div class="stat-bar-label"><span>🦥 Backbench Affinity</span><span class="stat-val">{{ scores.backbencher }}%</span></div>
+          <div class="stat-bar-track"><div class="stat-bar-fill" data-val="{{ scores.backbencher }}" style="background: linear-gradient(90deg,#e94560,#f5a623)"></div></div>
+        </div>
+        <div class="stat-bar-item">
+          <div class="stat-bar-label"><span>🪟 Window Obsession</span><span class="stat-val">{{ scores.window }}%</span></div>
+          <div class="stat-bar-track"><div class="stat-bar-fill" data-val="{{ scores.window }}" style="background: linear-gradient(90deg,#4facfe,#00f2fe)"></div></div>
+        </div>
+        <div class="stat-bar-item">
+          <div class="stat-bar-label"><span>❄️ AC Dependency</span><span class="stat-val">{{ scores.ac }}%</span></div>
+          <div class="stat-bar-track"><div class="stat-bar-fill" data-val="{{ scores.ac }}" style="background: linear-gradient(90deg,#43e97b,#38f9d7)"></div></div>
+        </div>
+        <div class="stat-bar-item">
+          <div class="stat-bar-label"><span>👀 Invisibility Drive</span><span class="stat-val">{{ scores.invisible }}%</span></div>
+          <div class="stat-bar-track"><div class="stat-bar-fill" data-val="{{ scores.invisible }}" style="background: linear-gradient(90deg,#a18cd1,#fbc2eb)"></div></div>
+        </div>
+        <div class="stat-bar-item">
+          <div class="stat-bar-label"><span>⚡ Charging Dependency</span><span class="stat-val">{{ scores.charging }}%</span></div>
+          <div class="stat-bar-track"><div class="stat-bar-fill" data-val="{{ scores.charging }}" style="background: linear-gradient(90deg,#f7971e,#ffd200)"></div></div>
+        </div>
+        <div class="stat-bar-item">
+          <div class="stat-bar-label"><span>👑 Teacher Affinity</span><span class="stat-val">{{ scores.teacher }}%</span></div>
+          <div class="stat-bar-track"><div class="stat-bar-fill" data-val="{{ scores.teacher }}" style="background: linear-gradient(90deg,#e94560,#c94b4b)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="personality-actions">
+      <a href="{{ url_for('discover') }}" class="btn btn-primary btn-lg">💘 Find My Chair Match</a>
+      <a href="{{ url_for('profile_setup') }}" class="btn btn-outline">Edit Preferences</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+window.addEventListener('load',()=>{
+  document.querySelectorAll('.stat-bar-fill').forEach(el=>{
+    const v=el.dataset.val;
+    setTimeout(()=>{ el.style.width=v+'%'; },200);
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Achievements · CHAIR-MATCH{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="achievements-page">
+    <div class="page-header">
+      <h1>🏆 Achievements</h1>
+      <p>{{ unlocked|length }} / {{ achievements|length }} unlocked · {{ current_user.points }} points</p>
+    </div>
+
+    <div class="achievements-grid">
+      {% for ach in achievements %}
+      <div class="achievement-card {% if ach.id in unlocked %}unlocked{% else %}locked{% endif %}">
+        <div class="ach-icon">{{ ach.icon }}</div>
+        <div class="ach-info">
+          <h3>{{ ach.name }}</h3>
+          <p>{{ ach.description }}</p>
+          {% if ach.id in unlocked %}
+          <span class="ach-date">Unlocked {{ unlocked[ach.id].strftime('%b %d') }}</span>
+          {% else %}
+          <span class="ach-locked">🔒 Locked</span>
+          {% endif %}
+        </div>
+        <div class="ach-points">+{{ ach.points }} pts</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

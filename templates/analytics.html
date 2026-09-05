@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Analytics · CHAIR-MATCH{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="analytics-page">
+    <div class="page-header">
+      <h1>📊 Analytics</h1>
+      <p>People apparently have strong opinions about chairs.</p>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num">{{ total_swipes }}</div><div class="stat-label">Total Swipes</div></div>
+      <div class="stat-card"><div class="stat-num">{{ total_reservations }}</div><div class="stat-label">Active Reservations</div></div>
+      <div class="stat-card"><div class="stat-num">{{ total_users }}</div><div class="stat-label">Students</div></div>
+      <div class="stat-card"><div class="stat-num">{{ chair_likes[0].likes if chair_likes else 0 }}</div><div class="stat-label">Most Liked Chair</div></div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h2>Most Popular Chairs</h2>
+        <div class="popular-list">
+          {% for item in chair_likes[:10] %}
+          <div class="popular-item">
+            <span class="popular-rank">{% if loop.index==1 %}🥇{% elif loop.index==2 %}🥈{% elif loop.index==3 %}🥉{% else %}{{ loop.index }}{% endif %}</span>
+            <span class="popular-code">{{ item.code }}</span>
+            <div class="popular-bar-wrap"><div class="popular-bar" style="width:{{ (item.likes / (chair_likes[0].likes or 1) * 100)|int }}%"></div></div>
+            <span class="popular-count">{{ item.likes }} likes</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h2>Most Rejected Chairs</h2>
+        <div class="popular-list">
+          {% set sorted_dislikes = chair_likes|sort(attribute='dislikes',reverse=True) %}
+          {% for item in sorted_dislikes[:10] %}
+          <div class="popular-item">
+            <span class="popular-rank">{{ loop.index }}</span>
+            <span class="popular-code">{{ item.code }}</span>
+            <div class="popular-bar-wrap"><div class="popular-bar dislike-bar" style="width:{{ (item.dislikes / (sorted_dislikes[0].dislikes or 1) * 100)|int }}%"></div></div>
+            <span class="popular-count">{{ item.dislikes }} nopes</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="chart-card chart-full">
+        <h2>Likes vs Dislikes</h2>
+        <canvas id="likesChart" height="100"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <h2>Student Preferences</h2>
+        <canvas id="prefChart" height="200"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <h2>🏆 Leaderboard</h2>
+        <p class="section-sub">Chair-matching champions.</p>
+        <div class="leaderboard">
+          {% for u in leaderboard %}
+          <div class="leader-item {% if u.id == current_user.id %}leader-me{% endif %}">
+            <span class="leader-rank">{% if loop.index==1 %}🥇{% elif loop.index==2 %}🥈{% elif loop.index==3 %}🥉{% else %}{{ loop.index }}{% endif %}</span>
+            <span class="leader-name">{{ u.name }}{% if u.id == current_user.id %} (you){% endif %}</span>
+            <span class="leader-pts">{{ u.points }} pts</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+{% endblock %}

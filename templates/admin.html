@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}Admin · CHAIR-MATCH{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="admin-page">
+    <div class="page-header">
+      <h1>⚙️ Admin Dashboard</h1>
+      <p>You have the power. Use it wisely.</p>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num">{{ stats.classrooms }}</div><div class="stat-label">Classrooms</div></div>
+      <div class="stat-card"><div class="stat-num">{{ stats.chairs }}</div><div class="stat-label">Chairs</div></div>
+      <div class="stat-card"><div class="stat-num">{{ stats.reservations }}</div><div class="stat-label">Active Reservations</div></div>
+      <div class="stat-card"><div class="stat-num">{{ stats.users }}</div><div class="stat-label">Students</div></div>
+      <div class="stat-card"><div class="stat-num">{{ stats.swipes }}</div><div class="stat-label">Total Swipes</div></div>
+    </div>
+
+    <div class="admin-grid">
+      <!-- Classroom Management -->
+      <div class="admin-card">
+        <h2>🏫 Classrooms</h2>
+        <form method="POST" action="{{ url_for('add_classroom') }}" class="inline-form">
+          <input type="text" name="name" placeholder="Classroom name (e.g. CSE-302)" required>
+          <input type="number" name="rows" placeholder="Rows" value="6" min="1" max="10">
+          <input type="number" name="columns" placeholder="Cols" value="5" min="1" max="10">
+          <button type="submit" class="btn btn-primary btn-sm">+ Add</button>
+        </form>
+        <div class="admin-list">
+          {% for c in classrooms %}
+          <div class="admin-list-item">
+            <span>{{ c.name }} ({{ c.rows }}×{{ c.columns }})</span>
+            <div class="item-actions">
+              <a href="{{ url_for('classroom', classroom_id=c.id) }}" class="btn btn-sm btn-outline">View</a>
+              <form method="POST" action="{{ url_for('delete_classroom', cid=c.id) }}" style="display:inline" onsubmit="return confirm('Delete {{ c.name }}?')">
+                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Chair Management -->
+      <div class="admin-card admin-card-wide">
+        <h2>💺 Chair Management</h2>
+        <div class="chair-admin-list">
+          {% for chair in chairs[:20] %}
+          <div class="chair-admin-item">
+            <span class="chair-admin-code">{{ chair.chair_code }}</span>
+            <span class="chair-admin-class">{{ chair.classroom.name }}</span>
+            <button onclick="toggleEdit({{ chair.id }})" class="btn btn-sm btn-outline">Edit</button>
+            <a href="{{ url_for('get_qr', chair_id=chair.id) }}" target="_blank" class="btn btn-sm btn-outline">QR</a>
+            <form method="POST" action="{{ url_for('delete_chair', cid=chair.id) }}" style="display:inline" onsubmit="return confirm('Delete chair {{ chair.chair_code }}?')">
+              <button type="submit" class="btn btn-sm btn-danger">Del</button>
+            </form>
+            <div id="edit-{{ chair.id }}" class="chair-edit-form hidden">
+              <form method="POST" action="{{ url_for('edit_chair', cid=chair.id) }}" class="edit-form-grid">
+                <label>Window<input type="number" name="window_score" value="{{ chair.window_score }}" min="1" max="10"></label>
+                <label>AC<input type="number" name="ac_score" value="{{ chair.ac_score }}" min="1" max="10"></label>
+                <label>Visibility<input type="number" name="visibility_score" value="{{ chair.visibility_score }}" min="1" max="10"></label>
+                <label>Noise<input type="number" name="noise_score" value="{{ chair.noise_score }}" min="1" max="10"></label>
+                <label>Comfort<input type="number" name="comfort_score" value="{{ chair.comfort_score }}" min="1" max="10"></label>
+                <label><input type="checkbox" name="charging" {% if chair.charging %}checked{% endif %}> Charging</label>
+                <button type="submit" class="btn btn-sm btn-primary">Save</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Popular Chairs -->
+      <div class="admin-card">
+        <h2>🔥 Chair Popularity</h2>
+        <div class="popular-list">
+          {% for item in chair_likes %}
+          <div class="popular-item">
+            <span class="popular-rank">{{ loop.index }}</span>
+            <span class="popular-code">{{ item.chair.chair_code }}</span>
+            <div class="popular-bar-wrap"><div class="popular-bar" style="width:{{ (item.likes / (chair_likes[0].likes or 1) * 100)|int }}%"></div></div>
+            <span class="popular-count">{{ item.likes }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Reservations -->
+      <div class="admin-card admin-card-wide">
+        <h2>📌 Recent Reservations</h2>
+        <table class="admin-table">
+          <thead><tr><th>Student</th><th>Chair</th><th>Classroom</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            {% for r in reservations %}
+            <tr>
+              <td>{{ r.user.name }}</td>
+              <td>{{ r.chair.chair_code }}</td>
+              <td>{{ r.chair.classroom.name }}</td>
+              <td>{{ r.date }}</td>
+              <td><span class="status-badge status-{{ r.status }}">{{ r.status }}</span></td>
+              <td>
+                {% if r.status == 'active' %}
+                <form method="POST" action="{{ url_for('admin_cancel_reservation', rid=r.id) }}" style="display:inline">
+                  <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Students -->
+      <div class="admin-card">
+        <h2>👥 Students</h2>
+        <table class="admin-table">
+          <thead><tr><th>Name</th><th>Dept</th><th>Year</th><th>Points</th></tr></thead>
+          <tbody>
+            {% for u in users %}
+            <tr><td>{{ u.name }}</td><td>{{ u.department }}</td><td>{{ u.year }}</td><td>{{ u.points }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function toggleEdit(id){
+  const el=document.getElementById('edit-'+id);
+  el.classList.toggle('hidden');
+}
+</script>
+{% endblock %}

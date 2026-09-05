@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Analytics — CHAIR-MATCH{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.analytics-wrap { max-width:1100px; margin:0 auto; padding:2rem 1.5rem; }
+.stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1.2rem; margin-bottom:2.5rem; }
+.chart-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; margin-bottom:1.5rem; }
+.chart-title { font-weight:700; margin-bottom:1.2rem; font-size:1rem; }
+.charts-row { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+.popular-list { list-style:none; }
+.popular-list li { display:flex; align-items:center; gap:1rem; padding:0.7rem 0; border-bottom:1px solid var(--border); }
+.popular-list li:last-child { border-bottom:none; }
+.pop-rank { font-size:1.2rem; min-width:30px; }
+.pop-code { font-weight:700; flex:1; }
+.pop-bar-wrap { flex:2; }
+.pop-bar-bg { background:var(--border); border-radius:4px; height:8px; }
+.pop-bar-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--primary),var(--secondary)); }
+.pop-count { color:var(--text2); font-size:0.85rem; min-width:60px; text-align:right; }
+.heatmap-section { margin-top:2rem; }
+.heatmap-grid { display:grid; gap:4px; margin:1rem 0; }
+.heatmap-cell { aspect-ratio:1; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:700; color:rgba(255,255,255,0.8); transition:all 0.3s; cursor:default; }
+.filter-row { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="analytics-wrap">
+  <h1 class="section-title">📊 <span>Analytics</span></h1>
+  <p style="color:var(--text2);margin-bottom:2rem;">"People apparently have strong opinions about chairs."</p>
+
+  <div class="stats-row">
+    <div class="card stat-card"><div class="stat-num">{{ total_swipes }}</div><div class="stat-label">Total Swipes</div></div>
+    <div class="card stat-card"><div class="stat-num">{{ total_likes }}</div><div class="stat-label">Total Likes</div></div>
+    <div class="card stat-card"><div class="stat-num">{{ total_reservations }}</div><div class="stat-label">Active Reservations</div></div>
+    <div class="card stat-card"><div class="stat-num">{{ chair_likes|length }}</div><div class="stat-label">Chairs Ranked</div></div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">🏆 Most Popular Chairs</div>
+      <ul class="popular-list">
+        {% set medals = ['🥇','🥈','🥉'] %}
+        {% for chair in chair_likes[:8] %}
+        <li>
+          <span class="pop-rank">{{ medals[loop.index0] if loop.index0 < 3 else loop.index }}</span>
+          <span class="pop-code">{{ chair.chair_code }}</span>
+          <div class="pop-bar-wrap">
+            <div class="pop-bar-bg">
+              <div class="pop-bar-fill" style="width:{{ (chair.like_count / (chair_likes[0].like_count + 1) * 100)|round }}%"></div>
+            </div>
+          </div>
+          <span class="pop-count">{{ chair.like_count }} likes</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">📉 Most Rejected Chairs</div>
+      <ul class="popular-list">
+        {% for chair in chair_dislikes %}
+        <li>
+          <span class="pop-rank">😬</span>
+          <span class="pop-code">{{ chair.chair_code }}</span>
+          <div class="pop-bar-wrap">
+            <div class="pop-bar-bg">
+              <div class="pop-bar-fill" style="width:{{ (chair.dislike_count / (chair_dislikes[0].dislike_count + 1) * 100)|round }}%;background:linear-gradient(90deg,var(--danger),#ff8a80)"></div>
+            </div>
+          </div>
+          <span class="pop-count">{{ chair.dislike_count }} nopes</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">📊 Likes vs Dislikes</div>
+      <canvas id="likeChart" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🎯 Average Student Preferences</div>
+      <canvas id="prefChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-card heatmap-section">
+    <div class="chart-title">🔥 Classroom Heatmap</div>
+    <div class="filter-row">
+      <button class="btn btn-primary btn-sm" onclick="loadHeatmap('popularity')">Popularity</button>
+      <button class="btn btn-outline btn-sm" onclick="loadHeatmap('window')">Window</button>
+      <button class="btn btn-outline btn-sm" onclick="loadHeatmap('ac')">AC</button>
+      <button class="btn btn-outline btn-sm" onclick="loadHeatmap('visibility')">Invisibility</button>
+      <button class="btn btn-outline btn-sm" onclick="loadHeatmap('charging')">Charging</button>
+    </div>
+    <div id="heatmapGrid" class="heatmap-grid" style="grid-template-columns:repeat(5,1fr);max-width:400px;"></div>
+    <div style="display:flex;gap:1rem;margin-top:0.8rem;font-size:0.78rem;color:var(--text2);">
+      <span>🟦 Low</span><span>🟨 Medium</span><span>🟧 High</span><span>🟥 Very High</span>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const likeData = {{ chair_likes[:8] | map(attribute='chair_code') | list | tojson }};
+const likeCounts = {{ chair_likes[:8] | map(attribute='like_count') | list | tojson }};
+const dislikeCounts = {{ chair_likes[:8] | map(attribute='dislike_count') | list | tojson }};
+const prefLabels = {{ avg_prefs.keys() | list | tojson }};
+const prefVals = {{ avg_prefs.values() | list | tojson }};
+
+const chartDefaults = { color: '#a0a0c0', borderColor: '#2a2a4a' };
+Chart.defaults.color = '#a0a0c0';
+
+new Chart(document.getElementById('likeChart'), {
+  type: 'bar',
+  data: {
+    labels: likeData,
+    datasets: [
+      { label: 'Likes', data: likeCounts, backgroundColor: 'rgba(233,30,140,0.7)', borderRadius: 6 },
+      { label: 'Dislikes', data: dislikeCounts, backgroundColor: 'rgba(255,82,82,0.5)', borderRadius: 6 }
+    ]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { x: { grid: { color: '#2a2a4a' } }, y: { grid: { color: '#2a2a4a' } } } }
+});
+
+new Chart(document.getElementById('prefChart'), {
+  type: 'radar',
+  data: {
+    labels: prefLabels,
+    datasets: [{ label: 'Avg Preference %', data: prefVals, backgroundColor: 'rgba(108,99,255,0.2)', borderColor: '#6c63ff', pointBackgroundColor: '#e91e8c' }]
+  },
+  options: { responsive: true, scales: { r: { grid: { color: '#2a2a4a' }, ticks: { display: false }, min: 0, max: 100 } } }
+});
+
+function loadHeatmap(metric) {
+  fetch('/heatmap-data?classroom_id=1&metric=' + metric)
+    .then(r => r.json())
+    .then(data => {
+      const grid = document.getElementById('heatmapGrid');
+      grid.innerHTML = '';
+      const maxVal = Math.max(...data.map(d => d.val), 1);
+      const sorted = [...data].sort((a,b) => a.row - b.row || a.col - b.col);
+      sorted.forEach(d => {
+        const pct = d.val / maxVal;
+        const cell = document.createElement('div');
+        cell.className = 'heatmap-cell';
+        cell.title = d.code + ': ' + d.val.toFixed(1);
+        cell.textContent = d.code;
+        const r = Math.round(pct * 200 + 20);
+        const g = Math.round((1 - pct) * 100);
+        const b = Math.round((1 - pct) * 150 + 20);
+        cell.style.background = `rgb(${r},${g},${b})`;
+        grid.appendChild(cell);
+      });
+    });
+}
+loadHeatmap('popularity');
+</script>
+{% endblock %}

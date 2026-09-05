@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}AI Chair Advisor — CHAIR-MATCH{% endblock %}
+{% block head %}
+<style>
+.advisor-wrap { max-width:700px; margin:0 auto; padding:2rem 1.5rem; }
+.chat-window { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1.5rem; min-height:300px; margin-bottom:1.5rem; }
+.chat-msg { display:flex; gap:1rem; margin-bottom:1.5rem; }
+.chat-avatar { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+.chat-avatar.bot { background:linear-gradient(135deg,var(--primary),var(--secondary)); }
+.chat-avatar.user { background:var(--card2); border:1px solid var(--border); }
+.chat-bubble { background:var(--bg2); border-radius:12px; padding:1rem; flex:1; font-size:0.9rem; line-height:1.6; }
+.chat-bubble.user-bubble { background:rgba(233,30,140,0.1); border:1px solid rgba(233,30,140,0.2); }
+.result-chair { background:var(--bg2); border-radius:10px; padding:0.8rem 1rem; margin:0.5rem 0; display:flex; align-items:center; gap:1rem; }
+.result-rank { font-size:1.2rem; }
+.result-code { font-weight:800; font-size:1.1rem; }
+.result-compat { color:var(--primary); font-weight:700; margin-left:auto; }
+.chat-input-row { display:flex; gap:0.8rem; }
+.chat-input-row input { flex:1; }
+.suggestion-chips { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+.chip { background:var(--card2); border:1px solid var(--border); border-radius:20px; padding:0.3rem 0.8rem; font-size:0.8rem; cursor:pointer; transition:all 0.2s; color:var(--text2); }
+.chip:hover { border-color:var(--primary); color:var(--primary); }
+</style>
+{% endblock %}
+{% block content %}
+<div class="advisor-wrap">
+  <h1 class="section-title">🤖 <span>AI Chair Advisor</span></h1>
+  <p style="color:var(--text2);margin-bottom:1.5rem;">Describe your ideal seat. I'll find your matches. (Powered by a very serious algorithm.)</p>
+
+  <div class="suggestion-chips">
+    <span class="chip" onclick="setMsg('I want a back seat near the window')">Back + Window</span>
+    <span class="chip" onclick="setMsg('I need charging and strong AC')">Charging + AC</span>
+    <span class="chip" onclick="setMsg('I want to be invisible to the teacher')">Invisible mode</span>
+    <span class="chip" onclick="setMsg('Front row, I want to be noticed')">Front row</span>
+    <span class="chip" onclick="setMsg('Quiet seat with good comfort')">Quiet + Comfort</span>
+  </div>
+
+  <div class="chat-window">
+    <div class="chat-msg">
+      <div class="chat-avatar bot">🤖</div>
+      <div class="chat-bubble">
+        <strong>Chair Advisor</strong><br>
+        Hello! Tell me what you're looking for in a chair. I'll analyze all available seats and find your best matches.<br><br>
+        <em style="color:var(--text2);">"We analyzed 30 chairs. This is getting serious."</em>
+      </div>
+    </div>
+
+    {% if result %}
+    <div class="chat-msg">
+      <div class="chat-avatar user">👤</div>
+      <div class="chat-bubble user-bubble">{{ result.query }}</div>
+    </div>
+    <div class="chat-msg">
+      <div class="chat-avatar bot">🤖</div>
+      <div class="chat-bubble">
+        <strong>Chair Advisor</strong><br>
+        I analyzed all available chairs based on your request. Here are your top matches:<br><br>
+        {% set medals = ['🥇', '🥈', '🥉'] %}
+        {% for chair, compat, bd in result.chairs %}
+        <div class="result-chair">
+          <span class="result-rank">{{ medals[loop.index0] }}</span>
+          <div>
+            <div class="result-code">Chair {{ chair.chair_code }}</div>
+            <div style="font-size:0.78rem;color:var(--text2);">{{ chair.classroom.name }} · Row {{ chair.row }}</div>
+          </div>
+          <span class="result-compat">{{ compat }}%</span>
+          <a href="{{ url_for('chair_detail', chair_id=chair.id) }}" class="btn btn-outline btn-sm">View</a>
+        </div>
+        {% endfor %}
+        {% if result.chairs %}
+        {% set top = result.chairs[0] %}
+        <br><strong>Why Chair {{ top[0].chair_code }}?</strong><br>
+        {% if top[0].window_score >= 7 %}✓ Excellent window access<br>{% endif %}
+        {% if top[0].row >= 5 %}✓ Back-row position<br>{% endif %}
+        {% if top[0].visibility_score >= 7 %}✓ Low teacher visibility<br>{% endif %}
+        {% if top[0].ac_score >= 7 %}✓ Strong AC exposure<br>{% endif %}
+        {% if top[0].charging %}✓ Charging available<br>{% endif %}
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <form method="POST">
+    <div class="chat-input-row">
+      <input type="text" name="message" id="msgInput" class="form-control" placeholder="e.g. I want a back seat near the window but don't want to be noticed..." required>
+      <button type="submit" class="btn btn-primary">Ask 🤖</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function setMsg(msg) { document.getElementById('msgInput').value = msg; }
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Chair {{ chair.chair_code }} — CHAIR-MATCH{% endblock %}
+{% block head %}
+<style>
+.chair-detail-wrap { max-width:700px; margin:0 auto; padding:2rem 1.5rem; }
+.chair-hero { background:var(--card); border:1px solid var(--border); border-radius:24px; padding:2.5rem; text-align:center; margin-bottom:1.5rem; position:relative; overflow:hidden; }
+.chair-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%, rgba(233,30,140,0.1) 0%, transparent 70%); }
+.chair-big-emoji { font-size:5rem; }
+.chair-big-code { font-size:2.5rem; font-weight:900; margin:0.5rem 0; }
+.chair-big-compat { font-size:4rem; font-weight:900; background:linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.props-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+.prop-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1rem; text-align:center; }
+.prop-icon { font-size:1.5rem; margin-bottom:0.3rem; }
+.prop-label { font-size:0.75rem; color:var(--text2); }
+.prop-val { font-size:1.1rem; font-weight:700; color:var(--primary); }
+.breakdown-section { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; margin-bottom:1.5rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="chair-detail-wrap">
+  <div style="margin-bottom:1rem;"><a href="{{ url_for('discover') }}" style="color:var(--text2);font-size:0.9rem;">← Back to Discover</a></div>
+
+  <div class="chair-hero">
+    <div class="chair-big-emoji">💺</div>
+    <div class="chair-big-code">Chair {{ chair.chair_code }}</div>
+    <div style="color:var(--text2);margin-bottom:1rem;">{{ chair.classroom.name }} · Row {{ chair.row }}, Column {{ chair.col }}</div>
+    <div class="chair-big-compat">{{ compat }}%</div>
+    <div style="color:var(--text2);font-size:0.9rem;">COMPATIBILITY MATCH</div>
+    {% if compat >= 90 %}<div style="color:var(--primary);font-weight:700;margin-top:0.5rem;">💘 This chair understands you.</div>
+    {% elif compat >= 70 %}<div style="color:var(--warning);font-weight:700;margin-top:0.5rem;">✨ A solid match. Could work.</div>
+    {% else %}<div style="color:var(--danger);font-weight:700;margin-top:0.5rem;">🚩 Red flag. This chair is not your type.</div>{% endif %}
+  </div>
+
+  <div class="props-grid">
+    <div class="prop-card"><div class="prop-icon">📍</div><div class="prop-label">Position</div><div class="prop-val">{% if chair.row <= 2 %}Front{% elif chair.row >= 5 %}Back{% else %}Middle{% endif %}</div></div>
+    <div class="prop-card"><div class="prop-icon">🪟</div><div class="prop-label">Window</div><div class="prop-val">{{ chair.window_score }}/10</div></div>
+    <div class="prop-card"><div class="prop-icon">❄️</div><div class="prop-label">AC Exposure</div><div class="prop-val">{{ chair.ac_score }}/10</div></div>
+    <div class="prop-card"><div class="prop-icon">👀</div><div class="prop-label">Invisibility</div><div class="prop-val">{{ chair.visibility_score }}/10</div></div>
+    <div class="prop-card"><div class="prop-icon">🔊</div><div class="prop-label">Noise Level</div><div class="prop-val">{{ chair.noise_score }}/10</div></div>
+    <div class="prop-card"><div class="prop-icon">🛋️</div><div class="prop-label">Comfort</div><div class="prop-val">{{ chair.comfort_score }}/10</div></div>
+    <div class="prop-card"><div class="prop-icon">⚡</div><div class="prop-label">Charging</div><div class="prop-val">{{ '✅ Yes' if chair.charging else '❌ No' }}</div></div>
+    <div class="prop-card"><div class="prop-icon">❤️</div><div class="prop-label">Total Likes</div><div class="prop-val">{{ chair.like_count }}</div></div>
+  </div>
+
+  <div class="breakdown-section">
+    <h3 style="margin-bottom:1.2rem;font-size:1rem;">Your Compatibility Breakdown</h3>
+    {% set items = [('🪟 Window', breakdown.window), ('📍 Front/Back', breakdown.front_back), ('❄️ AC', breakdown.ac), ('👀 Visibility', breakdown.visibility), ('⚡ Charging', breakdown.charging), ('🔊 Noise', breakdown.noise)] %}
+    {% for label, val in items %}
+    <div class="compat-bar-wrap">
+      <div class="compat-bar-label"><span>{{ label }}</span><span>{{ val|round|int }}%</span></div>
+      <div class="compat-bar-bg"><div class="compat-bar-fill" style="width:0%" data-width="{{ val|round|int }}%"></div></div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+    {% if active_res %}
+      <span class="badge badge-success" style="padding:0.6rem 1.2rem;font-size:0.9rem;">✅ Your Reserved Chair</span>
+      <a href="{{ url_for('verify_chair', token=chair.qr_token) }}" class="btn btn-outline">📷 Verify QR</a>
+    {% elif chair_reserved %}
+      <span class="badge badge-danger" style="padding:0.6rem 1.2rem;font-size:0.9rem;">🔒 Reserved by Someone Else</span>
+    {% else %}
+      <button class="btn btn-primary" onclick="reserveChair({{ chair.id }})">❤️ Reserve This Chair</button>
+    {% endif %}
+    <a href="{{ url_for('generate_qr', chair_id=chair.id) }}" class="btn btn-outline" target="_blank">📷 View QR Code</a>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.compat-bar-fill').forEach(b => {
+      setTimeout(() => b.style.width = b.dataset.width, 300);
+    });
+  });
+  function reserveChair(id) {
+    fetch('/reserve/' + id, {method:'POST'})
+      .then(r => r.json())
+      .then(d => {
+        showToast(d.msg, d.status === 'ok' ? 'var(--success)' : 'var(--danger)');
+        if (d.status === 'ok') setTimeout(() => location.reload(), 1500);
+      });
+  }
+</script>
+{% endblock %}

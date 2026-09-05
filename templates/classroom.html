@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Classroom Map — CHAIR-MATCH{% endblock %}
+{% block head %}
+<style>
+.classroom-wrap { max-width:900px; margin:0 auto; padding:2rem 1.5rem; }
+.classroom-selector { display:flex; gap:0.8rem; flex-wrap:wrap; margin-bottom:2rem; }
+.board-label { text-align:center; background:linear-gradient(135deg,var(--primary),var(--secondary)); color:white; padding:0.6rem 2rem; border-radius:8px; font-weight:700; margin-bottom:1.5rem; letter-spacing:2px; }
+.chair-grid { display:grid; gap:0.6rem; margin-bottom:1.5rem; }
+.chair-cell {
+  aspect-ratio:1; border-radius:10px; border:2px solid var(--border);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  cursor:pointer; transition:all 0.2s; font-size:0.75rem; font-weight:700;
+  background:var(--card2); position:relative;
+}
+.chair-cell:hover { transform:scale(1.08); z-index:10; }
+.chair-cell.available { border-color:var(--border); }
+.chair-cell.reserved { background:rgba(255,82,82,0.15); border-color:var(--danger); }
+.chair-cell.mine { background:rgba(0,230,118,0.15); border-color:var(--success); }
+.chair-cell.high-compat { border-color:var(--primary); box-shadow:0 0 12px rgba(233,30,140,0.3); }
+.chair-cell .cell-code { font-size:0.8rem; font-weight:800; }
+.chair-cell .cell-compat { font-size:0.65rem; color:var(--text2); }
+.chair-cell .cell-icon { font-size:1.1rem; }
+.window-label { text-align:right; color:var(--text2); font-size:0.85rem; margin-top:0.5rem; }
+.legend { display:flex; gap:1.5rem; flex-wrap:wrap; margin-top:1.5rem; }
+.legend-item { display:flex; align-items:center; gap:0.5rem; font-size:0.82rem; color:var(--text2); }
+.legend-dot { width:14px; height:14px; border-radius:4px; border:2px solid; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="classroom-wrap">
+  <h1 class="section-title">🗺️ <span>Classroom Map</span></h1>
+
+  {% if classrooms %}
+  <div class="classroom-selector">
+    {% for c in classrooms %}
+    <a href="{{ url_for('classroom', id=c.id) }}" class="btn {% if selected and selected.id == c.id %}btn-primary{% else %}btn-outline{% endif %} btn-sm">{{ c.name }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if selected %}
+  <div class="board-label">📋 TEACHER / BOARD</div>
+  <div class="chair-grid" id="chairGrid" style="grid-template-columns:repeat({{ selected.columns }}, 1fr);">
+    {% for r in range(1, selected.rows + 1) %}
+      {% for col in range(1, selected.columns + 1) %}
+        {% set row_label = 'ABCDEF'[r-1] %}
+        {% set code = row_label ~ col %}
+        {% set info = chair_map.get(code, {}) %}
+        {% set cls = 'mine' if info.get('mine') else ('reserved' if info.get('reserved') else ('high-compat' if info.get('compat', 0) >= 80 else 'available')) %}
+        <div class="chair-cell {{ cls }}"
+             onclick="{% if info.get('id') %}window.location='/chair/{{ info.get('id') }}'{% endif %}"
+             title="Chair {{ code }} — {{ info.get('compat', '?') }}% match">
+          <div class="cell-icon">{% if info.get('mine') %}✅{% elif info.get('reserved') %}🔒{% else %}💺{% endif %}</div>
+          <div class="cell-code">{{ code }}</div>
+          {% if info.get('compat') %}<div class="cell-compat">{{ info.get('compat') }}%</div>{% endif %}
+        </div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+  <div class="window-label">🪟 WINDOW →</div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="border-color:var(--success);background:rgba(0,230,118,0.15)"></div> Your Chair</div>
+    <div class="legend-item"><div class="legend-dot" style="border-color:var(--danger);background:rgba(255,82,82,0.15)"></div> Reserved</div>
+    <div class="legend-item"><div class="legend-dot" style="border-color:var(--primary);box-shadow:0 0 8px rgba(233,30,140,0.3)"></div> High Compatibility (80%+)</div>
+    <div class="legend-item"><div class="legend-dot" style="border-color:var(--border)"></div> Available</div>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:3rem;color:var(--text2);">No classrooms available. Ask an admin to add one.</div>
+  {% endif %}
+</div>
+{% endblock %}

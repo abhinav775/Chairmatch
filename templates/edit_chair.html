@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Edit Chair {{ chair.chair_code }} — Admin{% endblock %}
+{% block content %}
+<div class="page-sm">
+  <div style="margin-bottom:1rem;"><a href="{{ url_for('admin') }}" style="color:var(--text2);">← Back to Admin</a></div>
+  <div class="card">
+    <h2 style="margin-bottom:1.5rem;">Edit Chair {{ chair.chair_code }}</h2>
+    <form method="POST">
+      <div class="form-group"><label>Window Score (1-10)</label><input type="number" name="window_score" class="form-control" value="{{ chair.window_score }}" min="1" max="10" step="0.1"></div>
+      <div class="form-group"><label>AC Score (1-10)</label><input type="number" name="ac_score" class="form-control" value="{{ chair.ac_score }}" min="1" max="10" step="0.1"></div>
+      <div class="form-group"><label>Visibility Score (1-10, 10=most invisible)</label><input type="number" name="visibility_score" class="form-control" value="{{ chair.visibility_score }}" min="1" max="10" step="0.1"></div>
+      <div class="form-group"><label>Noise Score (1-10)</label><input type="number" name="noise_score" class="form-control" value="{{ chair.noise_score }}" min="1" max="10" step="0.1"></div>
+      <div class="form-group"><label>Comfort Score (1-10)</label><input type="number" name="comfort_score" class="form-control" value="{{ chair.comfort_score }}" min="1" max="10" step="0.1"></div>
+      <div class="form-group" style="display:flex;align-items:center;gap:0.8rem;">
+        <input type="checkbox" name="charging" id="charging" {% if chair.charging %}checked{% endif %} style="width:18px;height:18px;">
+        <label for="charging" style="margin:0;">Has Charging Port</label>
+      </div>
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

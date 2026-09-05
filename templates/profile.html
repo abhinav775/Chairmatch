@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Seating Profile — CHAIR-MATCH{% endblock %}
+{% block head %}
+<style>
+.profile-wrap { max-width:640px; margin:0 auto; padding:2rem 1.5rem; }
+.profile-header { text-align:center; margin-bottom:2.5rem; }
+.profile-header h1 { font-size:2rem; font-weight:800; }
+.profile-header p { color:var(--text2); margin-top:0.5rem; }
+.pref-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:1.8rem; margin-bottom:1.2rem; }
+.pref-title { font-weight:700; font-size:1rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; }
+.pref-icon { font-size:1.3rem; }
+.range-val { text-align:center; font-size:1.4rem; font-weight:800; color:var(--primary); margin-top:0.5rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="profile-wrap">
+  <div class="profile-header">
+    <h1>💺 Your Seating Profile</h1>
+    <p>Tell us what you're looking for. We'll find your perfect match.</p>
+  </div>
+  <form method="POST">
+    <div class="pref-card">
+      <div class="pref-title"><span class="pref-icon">📍</span> Where do you like to sit?</div>
+      <div class="slider-labels"><span>Front Row 🎓</span><span>Back Row 🦥</span></div>
+      <input type="range" name="front_back" min="1" max="10" value="5" oninput="this.nextElementSibling.textContent=this.value">
+      <div class="range-val">5</div>
+    </div>
+    <div class="pref-card">
+      <div class="pref-title"><span class="pref-icon">🪟</span> How important is a window seat?</div>
+      <div class="slider-labels"><span>Not important</span><span>Extremely important</span></div>
+      <input type="range" name="window" min="1" max="10" value="5" oninput="this.nextElementSibling.textContent=this.value">
+      <div class="range-val">5</div>
+    </div>
+    <div class="pref-card">
+      <div class="pref-title"><span class="pref-icon">❄️</span> AC preference</div>
+      <div class="slider-labels"><span>Natural air 🌿</span><span>Antarctica ❄️</span></div>
+      <input type="range" name="ac" min="1" max="10" value="5" oninput="this.nextElementSibling.textContent=this.value">
+      <div class="range-val">5</div>
+    </div>
+    <div class="pref-card">
+      <div class="pref-title"><span class="pref-icon">👀</span> Teacher visibility preference</div>
+      <div class="slider-labels"><span>I want to be noticed 👋</span><span>Please don't perceive me 🥷</span></div>
+      <input type="range" name="visibility" min="1" max="10" value="5" oninput="this.nextElementSibling.textContent=this.value">
+      <div class="range-val">5</div>
+    </div>
+    <div class="pref-card">
+      <div class="pref-title"><span class="pref-icon">🔊</span> Noise preference</div>
+      <div class="slider-labels"><span>Silent 🤫</span><span>I don't care 🎧</span></div>
+      <input type="range" name="noise" min="1" max="10" value="5" oninput="this.nextElementSibling.textContent=this.value">
+      <div class="range-val">5</div>
+    </div>
+    <div class="pref-card">
+      <div class="pref-title"><span class="pref-icon">⚡</span> Charging requirement</div>
+      <div class="slider-labels"><span>Not needed</span><span>I need it to survive ⚡</span></div>
+      <input type="range" name="charging" min="1" max="10" value="5" oninput="this.nextElementSibling.textContent=this.value">
+      <div class="range-val">5</div>
+    </div>
+    <div class="pref-card">
+      <div class="pref-title"><span class="pref-icon">🛋️</span> Comfort importance</div>
+      <div class="slider-labels"><span>Low</span><span>Extremely important</span></div>
+      <input type="range" name="comfort" min="1" max="10" value="5" oninput="this.nextElementSibling.textContent=this.value">
+      <div class="range-val">5</div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:1rem;">
+      Discover My Matches 💘
+    </button>
+  </form>
+</div>
+{% endblock %}

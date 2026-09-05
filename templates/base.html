@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}CHAIR-MATCH 💺❤️{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{% block head %}{% endblock %}
+</head>
+<body>
+<nav class="navbar">
+  <a href="{{ url_for('index') }}" class="nav-brand">💺❤️ CHAIR-MATCH</a>
+  <div class="nav-links">
+    {% if current_user.is_authenticated %}
+      {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('admin') }}"><i class="fa fa-gauge"></i> <span>Admin</span></a>
+      {% else %}
+        <a href="{{ url_for('discover') }}"><i class="fa fa-heart"></i> <span>Discover</span></a>
+        <a href="{{ url_for('classroom') }}"><i class="fa fa-map"></i> <span>Map</span></a>
+        <a href="{{ url_for('reservations') }}"><i class="fa fa-bookmark"></i> <span>My Chairs</span></a>
+        <a href="{{ url_for('advisor') }}"><i class="fa fa-robot"></i> <span>Advisor</span></a>
+        <a href="{{ url_for('analytics') }}"><i class="fa fa-chart-bar"></i> <span>Stats</span></a>
+        <a href="{{ url_for('achievements') }}"><i class="fa fa-trophy"></i> <span>Badges</span></a>
+      {% endif %}
+      <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm">Logout</a>
+    {% else %}
+      <a href="{{ url_for('login') }}" class="btn btn-outline btn-sm">Login</a>
+      <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Sign Up</a>
+    {% endif %}
+  </div>
+</nav>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-container">
+    {% for cat, msg in messages %}
+    <div class="flash flash-{{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+<footer>
+  <p>💺❤️ <span>CHAIR-MATCH</span> &mdash; "Find the chair you were meant to sit in."</p>
+  <p style="margin-top:0.4rem;opacity:0.5;">Because apparently choosing a chair needed an algorithm.</p>
+</footer>
+<script>
+  setTimeout(() => { document.querySelectorAll('.flash').forEach(f => f.remove()); }, 4000);
+  function showToast(msg, color='') {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.style.borderColor = color || 'var(--border)';
+    t.innerHTML = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

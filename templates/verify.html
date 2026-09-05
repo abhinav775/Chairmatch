@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Chair Verification — CHAIR-MATCH{% endblock %}
+{% block head %}
+<style>
+.verify-wrap { max-width:480px; margin:0 auto; padding:3rem 1.5rem; text-align:center; }
+.verify-icon { font-size:5rem; margin-bottom:1rem; }
+.verify-title { font-size:2rem; font-weight:900; margin-bottom:0.5rem; }
+.verify-card { background:var(--card); border:2px solid; border-radius:20px; padding:2rem; margin:1.5rem 0; }
+.verify-row { display:flex; justify-content:space-between; padding:0.6rem 0; border-bottom:1px solid var(--border); font-size:0.9rem; }
+.verify-row:last-child { border-bottom:none; }
+.verify-row .vr-label { color:var(--text2); }
+.verify-row .vr-val { font-weight:700; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="verify-wrap">
+  {% if status == 'match' %}
+    <div class="verify-icon">✅</div>
+    <div class="verify-title" style="color:var(--success);">SEAT VERIFIED</div>
+    <p style="color:var(--text2);">Welcome back to your perfect match.</p>
+    <div class="verify-card" style="border-color:var(--success);">
+      <div style="font-size:2.5rem;margin-bottom:0.5rem;">💺</div>
+      <div style="font-size:1.8rem;font-weight:900;margin-bottom:1rem;">Chair {{ chair.chair_code }}</div>
+      <div class="verify-row"><span class="vr-label">Reserved for</span><span class="vr-val">{{ current_user.name }}</span></div>
+      <div class="verify-row"><span class="vr-label">Current user</span><span class="vr-val">{{ current_user.name }}</span></div>
+      <div class="verify-row"><span class="vr-label">Classroom</span><span class="vr-val">{{ chair.classroom.name }}</span></div>
+      <div class="verify-row"><span class="vr-label">Compatibility</span><span class="vr-val" style="color:var(--primary);">{{ compat }}%</span></div>
+      <div class="verify-row"><span class="vr-label">Status</span><span class="vr-val" style="color:var(--success);">✅ Verified</span></div>
+    </div>
+    <p style="color:var(--text2);font-style:italic;">"Compatibility calculated. Emotional attachment confirmed."</p>
+
+  {% elif status == 'mismatch' %}
+    <div class="verify-icon">🚨</div>
+    <div class="verify-title" style="color:var(--danger);">CHAIR MISMATCH</div>
+    <p style="color:var(--text2);">That's not your chair. We know.</p>
+    <div class="verify-card" style="border-color:var(--danger);">
+      <div class="verify-row"><span class="vr-label">This chair</span><span class="vr-val" style="color:var(--danger);">{{ chair.chair_code }}</span></div>
+      <div class="verify-row"><span class="vr-label">Your reserved chair</span><span class="vr-val" style="color:var(--success);">{{ res.chair.chair_code }}</span></div>
+      <div class="verify-row"><span class="vr-label">Classroom</span><span class="vr-val">{{ chair.classroom.name }}</span></div>
+      <div class="verify-row"><span class="vr-label">Status</span><span class="vr-val" style="color:var(--danger);">❌ Verification Failed</span></div>
+    </div>
+    <p style="color:var(--text2);margin-bottom:1.5rem;">Your chair <strong style="color:var(--primary);">{{ res.chair.chair_code }}</strong> is waiting for you.</p>
+    <a href="{{ url_for('reservations') }}" class="btn btn-primary">Go to My Reservations</a>
+
+  {% else %}
+    <div class="verify-icon">💺</div>
+    <div class="verify-title">Chair {{ chair.chair_code }}</div>
+    <p style="color:var(--text2);">You don't have an active reservation.</p>
+    <div class="verify-card" style="border-color:var(--border);">
+      <div class="verify-row"><span class="vr-label">Chair</span><span class="vr-val">{{ chair.chair_code }}</span></div>
+      <div class="verify-row"><span class="vr-label">Classroom</span><span class="vr-val">{{ chair.classroom.name }}</span></div>
+      <div class="verify-row"><span class="vr-label">Compatibility</span><span class="vr-val" style="color:var(--primary);">{{ compat }}%</span></div>
+    </div>
+    <a href="{{ url_for('chair_detail', chair_id=chair.id) }}" class="btn btn-primary">Reserve This Chair</a>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Your Seating Personality — CHAIR-MATCH{% endblock %}
+{% block head %}
+<style>
+.personality-wrap { max-width:640px; margin:0 auto; padding:3rem 1.5rem; text-align:center; }
+.personality-icon { font-size:5rem; margin-bottom:1rem; animation:bounce 1s ease infinite alternate; }
+@keyframes bounce { from{transform:scale(1)} to{transform:scale(1.1)} }
+.personality-title { font-size:2.2rem; font-weight:900; margin-bottom:0.5rem; }
+.personality-desc { color:var(--text2); font-size:1.1rem; margin-bottom:2.5rem; }
+.stats-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:2rem; text-align:left; margin-bottom:2rem; }
+.stat-row { margin-bottom:1rem; }
+.stat-row-label { display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:0.4rem; }
+.stat-row-label span:last-child { color:var(--primary); font-weight:700; }
+.bar-bg { background:var(--border); border-radius:4px; height:10px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--primary),var(--secondary)); transition:width 1.2s ease; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="personality-wrap">
+  <div class="personality-icon">{{ icon }}</div>
+  <div class="personality-title">{{ title }}</div>
+  <div class="personality-desc">{{ desc }}</div>
+
+  <div class="stats-card">
+    <h3 style="margin-bottom:1.5rem;font-size:1rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;">Your Seating DNA</h3>
+    {% for label, val in stats.items() %}
+    <div class="stat-row">
+      <div class="stat-row-label"><span>{{ label }}</span><span>{{ val }}%</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:0%" data-width="{{ val }}%"></div></div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <p style="color:var(--text2);margin-bottom:1.5rem;font-style:italic;">"Compatibility calculated. Emotional attachment pending."</p>
+  <a href="{{ url_for('discover') }}" class="btn btn-primary btn-lg">Meet My Chairs 💺</a>
+  <br><br>
+  <a href="{{ url_for('setup_profile') }}" class="btn btn-outline btn-sm">Retake Profile</a>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.bar-fill').forEach(b => {
+      setTimeout(() => b.style.width = b.dataset.width, 200);
+    });
+  });
+</script>
+{% endblock %}

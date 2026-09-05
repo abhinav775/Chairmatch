@@ -34,9 +34,7 @@
   <div class="props-grid">
     <div class="prop-card"><div class="prop-icon">📍</div><div class="prop-label">Position</div><div class="prop-val">{% if chair.row <= 2 %}Front{% elif chair.row >= 5 %}Back{% else %}Middle{% endif %}</div></div>
     <div class="prop-card"><div class="prop-icon">🪟</div><div class="prop-label">Window</div><div class="prop-val">{{ chair.window_score }}/10</div></div>
-    <div class="prop-card"><div class="prop-icon">❄️</div><div class="prop-label">AC Exposure</div><div class="prop-val">{{ chair.ac_score }}/10</div></div>
-    <div class="prop-card"><div class="prop-icon">👀</div><div class="prop-label">Invisibility</div><div class="prop-val">{{ chair.visibility_score }}/10</div></div>
-    <div class="prop-card"><div class="prop-icon">🔊</div><div class="prop-label">Noise Level</div><div class="prop-val">{{ chair.noise_score }}/10</div></div>
+    <div class="prop-card"><div class="prop-icon">👀</div><div class="prop-label">Board Visibility</div><div class="prop-val">{{ chair.visibility_score }}/10</div></div>
     <div class="prop-card"><div class="prop-icon">🛋️</div><div class="prop-label">Comfort</div><div class="prop-val">{{ chair.comfort_score }}/10</div></div>
     <div class="prop-card"><div class="prop-icon">⚡</div><div class="prop-label">Charging</div><div class="prop-val">{{ '✅ Yes' if chair.charging else '❌ No' }}</div></div>
     <div class="prop-card"><div class="prop-icon">❤️</div><div class="prop-label">Total Likes</div><div class="prop-val">{{ chair.like_count }}</div></div>
@@ -44,7 +42,7 @@
 
   <div class="breakdown-section">
     <h3 style="margin-bottom:1.2rem;font-size:1rem;">Your Compatibility Breakdown</h3>
-    {% set items = [('🪟 Window', breakdown.window), ('📍 Front/Back', breakdown.front_back), ('❄️ AC', breakdown.ac), ('👀 Visibility', breakdown.visibility), ('⚡ Charging', breakdown.charging), ('🔊 Noise', breakdown.noise)] %}
+    {% set items = [('🪟 Window', breakdown.window), ('📍 Front/Back', breakdown.front_back), ('👀 Board Visibility', breakdown.visibility), ('⚡ Charging', breakdown.charging)] %}
     {% for label, val in items %}
     <div class="compat-bar-wrap">
       <div class="compat-bar-label"><span>{{ label }}</span><span>{{ val|round|int }}%</span></div>

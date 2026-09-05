@@ -19,8 +19,7 @@ def load_user(uid):
     return User.query.get(int(uid))
 
 # ── Matching Algorithm ──────────────────────────────────────────────────────
-WEIGHTS = {'window': 0.25, 'front_back': 0.20, 'ac': 0.15,
-           'visibility': 0.15, 'charging': 0.15, 'noise': 0.10}
+WEIGHTS = {'window': 0.30, 'front_back': 0.25, 'visibility': 0.25, 'charging': 0.20}
 
 def compute_compatibility(pref, chair):
     def score(p, c): return max(0, 100 - abs(p - c) * 11.1)
@@ -28,10 +27,8 @@ def compute_compatibility(pref, chair):
     breakdown = {
         'window':     score(pref.window, chair.window_score),
         'front_back': score(pref.front_back, chair.front_back_score),
-        'ac':         score(pref.ac, chair.ac_score),
         'visibility': score(pref.visibility, chair.visibility_score),
         'charging':   charging_score,
-        'noise':      score(pref.noise, chair.noise_score),
     }
     total = sum(breakdown[k] * WEIGHTS[k] for k in WEIGHTS)
     return round(total), breakdown
@@ -40,7 +37,6 @@ def get_personality(pref):
     scores = {
         'backbencher': pref.front_back,
         'window': pref.window,
-        'ac': pref.ac,
         'invisible': pref.visibility,
         'charging': pref.charging,
         'front': 10 - pref.front_back,
@@ -49,10 +45,9 @@ def get_personality(pref):
     personalities = {
         'backbencher': ('🦥', 'Strategic Backbencher', 'Comfort and invisibility are your love language.'),
         'window':      ('🪟', 'Window Philosopher',    'You stare outside and call it studying.'),
-        'ac':          ('❄️', 'AC Addict',             'You would sit in a freezer if it had a desk.'),
-        'invisible':   ('🥷', 'Invisible Student',     'Maximum distance from the teacher. Respect.'),
+        'invisible':   ('🥷', 'Invisible Student',     'You sit where the board can\'t find you.'),
         'charging':    ('⚡', 'Charging Hunter',       'Your phone battery is your emotional support.'),
-        'front':       ('👑', "Teacher's Favorite",    'You actually want to be seen. Brave.'),
+        'front':       ('👑', "Board Watcher",         'Front row, full board view. You actually pay attention.'),
     }
     return personalities[top]
 
@@ -130,9 +125,7 @@ def setup_profile():
         pref = current_user.preference or Preference(user_id=current_user.id)
         pref.front_back = float(d.get('front_back', 5))
         pref.window     = float(d.get('window', 5))
-        pref.ac         = float(d.get('ac', 5))
         pref.visibility = float(d.get('visibility', 5))
-        pref.noise      = float(d.get('noise', 5))
         pref.charging   = float(d.get('charging', 5))
         pref.comfort    = float(d.get('comfort', 5))
         if not current_user.preference:
@@ -149,12 +142,11 @@ def personality():
         return redirect(url_for('setup_profile'))
     icon, title, desc = get_personality(pref)
     stats = {
-        'Backbench affinity':   round(pref.front_back * 10),
-        'Window obsession':     round(pref.window * 10),
-        'AC dependency':        round(pref.ac * 10),
-        'Teacher avoidance':    round(pref.visibility * 10),
-        'Charging dependency':  round(pref.charging * 10),
-        'Comfort seeking':      round(pref.comfort * 10),
+        'Backbench affinity':    round(pref.front_back * 10),
+        'Window obsession':      round(pref.window * 10),
+        'Board avoidance':       round(pref.visibility * 10),
+        'Charging dependency':   round(pref.charging * 10),
+        'Comfort seeking':       round(pref.comfort * 10),
     }
     return render_template('personality.html', icon=icon, title=title, desc=desc, stats=stats)
 
@@ -177,7 +169,19 @@ def discover():
     chair_data = []
     for c in unseen:
         compat, breakdown = compute_compatibility(pref, c)
-        chair_data.append({'chair': c, 'compat': compat, 'breakdown': breakdown})
+        chair_data.append({
+            'chair': c,
+            'compat': compat,
+            'breakdown': breakdown,
+            'chair_json': {
+                'id': c.id,
+                'chair_code': c.chair_code,
+                'classroom_name': c.classroom.name,
+                'row': c.row,
+                'window_score': c.window_score,
+                'charging': c.charging
+            }
+        })
     chair_data.sort(key=lambda x: -x['compat'])
     return render_template('discover.html', chair_data=chair_data)
 
@@ -335,19 +339,15 @@ def advisor():
             user_id=current_user.id,
             front_back=pref.front_back if pref else 5,
             window=pref.window if pref else 5,
-            ac=pref.ac if pref else 5,
             visibility=pref.visibility if pref else 5,
-            noise=pref.noise if pref else 5,
             charging=pref.charging if pref else 5,
             comfort=pref.comfort if pref else 5,
         )
         if any(w in msg for w in ['back', 'last', 'rear']): temp_pref.front_back = 9
         if any(w in msg for w in ['front', 'first']): temp_pref.front_back = 2
         if any(w in msg for w in ['window', 'outside', 'view']): temp_pref.window = 9
-        if any(w in msg for w in ['ac', 'cold', 'cool', 'air']): temp_pref.ac = 9
-        if any(w in msg for w in ['invisible', 'hide', 'notice', 'seen', 'avoid']): temp_pref.visibility = 9
+        if any(w in msg for w in ['invisible', 'hide', 'notice', 'seen', 'avoid', 'board']): temp_pref.visibility = 9
         if any(w in msg for w in ['charge', 'charging', 'plug', 'socket', 'power']): temp_pref.charging = 9
-        if any(w in msg for w in ['quiet', 'silent', 'noise']): temp_pref.noise = 2
         chairs = Chair.query.all()
         scored = [(c, compute_compatibility(temp_pref, c)) for c in chairs]
         scored.sort(key=lambda x: -x[1][0])
@@ -371,8 +371,7 @@ def analytics():
         avg_prefs = {
             'Window': round(sum(p.window for p in prefs) / len(prefs) * 10),
             'Back Row': round(sum(p.front_back for p in prefs) / len(prefs) * 10),
-            'AC': round(sum(p.ac for p in prefs) / len(prefs) * 10),
-            'Invisibility': round(sum(p.visibility for p in prefs) / len(prefs) * 10),
+            'Board Avoidance': round(sum(p.visibility for p in prefs) / len(prefs) * 10),
             'Charging': round(sum(p.charging for p in prefs) / len(prefs) * 10),
         }
     return render_template('analytics.html', chair_likes=chair_likes, chair_dislikes=chair_dislikes,
@@ -552,23 +551,23 @@ def seed_data():
     # Sample students
     student_data = [
         # (name, email, dept, year, front_back, window, ac, visibility, noise, charging, comfort)
-        ('Rahul Sharma',   'rahul@demo.com',   'CSE', '3rd Year', 9, 8, 7, 9, 5, 6, 8),
-        ('Priya Patel',    'priya@demo.com',   'ECE', '2nd Year', 3, 9, 8, 4, 6, 8, 7),
-        ('Arjun Singh',    'arjun@demo.com',   'ME',  '4th Year', 8, 5, 9, 8, 4, 9, 6),
-        ('Sneha Reddy',    'sneha@demo.com',   'CSE', '1st Year', 2, 7, 6, 2, 7, 5, 9),
-        ('Karan Mehta',    'karan@demo.com',   'IT',  '3rd Year', 9, 9, 8, 9, 3, 7, 7),
-        ('Abhinav Gopal',  'abhinav@demo.com', 'CSE', '3rd Year', 8, 7, 6, 8, 4, 8, 7),
-        ('Divya Nair',     'divya@demo.com',   'ECE', '2nd Year', 4, 8, 9, 3, 6, 5, 8),
-        ('Rohan Verma',    'rohan@demo.com',   'IT',  '1st Year', 7, 6, 5, 7, 5, 9, 6),
+        ('Rahul Sharma',   'rahul@demo.com',   'CSE', '3rd Year', 9, 8, 9, 6, 8),
+        ('Priya Patel',    'priya@demo.com',   'ECE', '2nd Year', 3, 9, 4, 8, 7),
+        ('Arjun Singh',    'arjun@demo.com',   'ME',  '4th Year', 8, 5, 8, 9, 6),
+        ('Sneha Reddy',    'sneha@demo.com',   'CSE', '1st Year', 2, 7, 2, 5, 9),
+        ('Karan Mehta',    'karan@demo.com',   'IT',  '3rd Year', 9, 9, 9, 7, 7),
+        ('Abhinav Gopal',  'abhinav@demo.com', 'CSE', '3rd Year', 8, 7, 8, 8, 7),
+        ('Divya Nair',     'divya@demo.com',   'ECE', '2nd Year', 4, 8, 3, 5, 8),
+        ('Rohan Verma',    'rohan@demo.com',   'IT',  '1st Year', 7, 6, 7, 9, 6),
     ]
     students = []
-    for name, email, dept, year, fb, win, ac, vis, noise, chg, comf in student_data:
+    for name, email, dept, year, fb, win, vis, chg, comf in student_data:
         u = User(name=name, email=email, department=dept, year=year, class_name='CSE-A', points=random.randint(20, 100))
         u.set_password('demo123')
         db.session.add(u)
         db.session.flush()
-        p = Preference(user_id=u.id, front_back=fb, window=win, ac=ac,
-                       visibility=vis, noise=noise, charging=chg, comfort=comf)
+        p = Preference(user_id=u.id, front_back=fb, window=win,
+                       visibility=vis, charging=chg, comfort=comf)
         db.session.add(p)
         students.append((u, p))
 

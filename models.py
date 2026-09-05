@@ -33,9 +33,7 @@ class Preference(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     front_back = db.Column(db.Float, default=5)   # 1=front, 10=back
     window = db.Column(db.Float, default=5)
-    ac = db.Column(db.Float, default=5)
-    visibility = db.Column(db.Float, default=5)   # 1=visible, 10=invisible
-    noise = db.Column(db.Float, default=5)
+    visibility = db.Column(db.Float, default=5)   # 1=visible to board, 10=invisible
     charging = db.Column(db.Float, default=5)
     comfort = db.Column(db.Float, default=5)
 

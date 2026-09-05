@@ -1,15 +1,8 @@
-// Swipe interface for discover page
-const stack = document.getElementById('swipeStack');
-if (!stack) { /* not on discover page */ }
+const card = document.getElementById('topCard');
+if (!card) { /* not on discover page */ }
 else {
-  let cards = Array.from(stack.querySelectorAll('.swipe-card'));
-  let current = cards[cards.length - 1]; // top card
-  let startX = 0, startY = 0, isDragging = false;
-
-  function getTopCard() {
-    const all = stack.querySelectorAll('.swipe-card:not(.fly-left):not(.fly-right)');
-    return all[all.length - 1] || null;
-  }
+  let idx = 0; // index into CHAIRS array (next cards)
+  let isDragging = false, startX = 0, startY = 0;
 
   function sendSwipe(chairId, action) {
     return fetch('/swipe', {
@@ -19,75 +12,119 @@ else {
     }).then(r => r.json());
   }
 
-  function animateCard(card, direction) {
-    card.classList.add(direction === 'like' ? 'fly-right' : 'fly-left');
-    setTimeout(() => card.remove(), 350);
-  }
-
-  function showMatchOverlay(compat, chairCode) {
+  function showMatchOverlay(compat, code) {
     if (compat >= 85) {
-      const overlay = document.getElementById('matchOverlay');
       document.getElementById('matchMsg').textContent =
-        `Chair ${chairCode} has a lot in common with you. ${compat}% compatibility!`;
-      overlay.classList.add('show');
-      setTimeout(() => overlay.classList.remove('show'), 3500);
+        `Chair ${code} has a lot in common with you. ${compat}% compatibility!`;
+      const ov = document.getElementById('matchOverlay');
+      ov.classList.add('show');
+      setTimeout(() => ov.classList.remove('show'), 3000);
     }
   }
 
+  function loadNextCard() {
+    if (idx >= CHAIRS.length) {
+      card.innerHTML = `<div style="text-align:center;padding:3rem 1rem;">
+        <div style="font-size:3rem;">💔</div>
+        <h2 style="margin:1rem 0;">You've seen all the chairs.</h2>
+        <p style="color:var(--text2);">Every chair has found someone. Tough luck.</p>
+        <a href="/classroom" class="btn btn-primary" style="margin-top:1rem;display:inline-flex;">View Classroom Map</a>
+      </div>`;
+      card.style.transform = '';
+      card.style.opacity = '';
+      document.getElementById('remainCount') && (document.getElementById('remainCount').textContent = '0');
+      return;
+    }
+    const c = CHAIRS[idx];
+    const compat = COMPATS[idx];
+    const bd = BREAKDOWNS[idx];
+    idx++;
+
+    const tags = [];
+    if (c.row >= 5) tags.push('🦥 Back Row');
+    if (c.row <= 2) tags.push('👑 Front Row');
+    if (c.window_score >= 7) tags.push('🪟 Window Seat');
+    if (c.charging) tags.push('⚡ Charging');
+
+    card.dataset.chairId = c.id;
+    card.dataset.compat = compat;
+    card.innerHTML = `
+      <div class="chair-emoji">💺</div>
+      <div class="chair-code">${c.chair_code}</div>
+      <div class="chair-location">${c.classroom_name} · Row ${c.row}</div>
+      <div class="compat-big">${compat}%</div>
+      <div class="compat-label">COMPATIBILITY MATCH</div>
+      <div class="breakdown-grid">
+        <div class="breakdown-item"><div class="bi-label">🪟 Window</div><div class="bi-val">${Math.round(bd.window)}%</div></div>
+        <div class="breakdown-item"><div class="bi-label">👀 Board Visibility</div><div class="bi-val">${Math.round(bd.visibility)}%</div></div>
+        <div class="breakdown-item"><div class="bi-label">⚡ Charging</div><div class="bi-val">${Math.round(bd.charging)}%</div></div>
+        <div class="breakdown-item"><div class="bi-label">🪑 Row Position</div><div class="bi-val">${Math.round(bd.front_back)}%</div></div>
+      </div>
+      <div class="chair-tags">${tags.map(t => `<span class="chair-tag">${t}</span>`).join('')}</div>
+      <div class="card-actions">
+        <button class="btn-nope" onclick="doSwipe('dislike')">👎 NOPE</button>
+        <a href="/chair/${c.id}" class="btn btn-details">Details</a>
+        <button class="btn-like" onclick="doSwipe('like')">❤️ LIKE</button>
+      </div>`;
+    card.style.transform = '';
+    card.style.opacity = '';
+    card.classList.remove('fly-left', 'fly-right');
+    const rem = document.getElementById('remainCount');
+    if (rem) rem.textContent = CHAIRS.length - idx + 1;
+  }
+
   window.doSwipe = function(action) {
-    const card = getTopCard();
-    if (!card) return;
     const chairId = card.dataset.chairId;
     const compat = parseInt(card.dataset.compat);
-    const code = card.querySelector('.chair-code').textContent.trim();
-    animateCard(card, action);
+    const code = card.querySelector('.chair-code') ? card.querySelector('.chair-code').textContent.trim() : '';
+
+    card.classList.add(action === 'like' ? 'fly-right' : 'fly-left');
     sendSwipe(chairId, action).then(data => {
       if (action === 'like') showMatchOverlay(compat, code);
       if (data.achievements && data.achievements.length) {
-        data.achievements.forEach(a => showToast('🏅 Achievement unlocked: ' + a, 'var(--warning)'));
+        data.achievements.forEach(a => showToast('🏅 Achievement: ' + a, 'var(--warning)'));
       }
     });
+    setTimeout(loadNextCard, 320);
   };
 
-  // Touch/mouse drag
-  function onStart(e) {
-    const card = getTopCard();
-    if (!card) return;
-    isDragging = true;
-    card.classList.add('swiping');
-    const pt = e.touches ? e.touches[0] : e;
-    startX = pt.clientX; startY = pt.clientY;
-  }
-
-  function onMove(e) {
+  // Drag to swipe
+  card.addEventListener('mousedown', e => {
+    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
+    isDragging = true; card.classList.add('swiping');
+    startX = e.clientX; startY = e.clientY;
+  });
+  document.addEventListener('mousemove', e => {
     if (!isDragging) return;
-    const card = getTopCard();
-    if (!card) return;
-    const pt = e.touches ? e.touches[0] : e;
-    const dx = pt.clientX - startX;
-    const dy = pt.clientY - startY;
-    const rot = dx * 0.08;
-    card.style.transform = `translateX(${dx}px) translateY(${dy}px) rotate(${rot}deg)`;
-    card.style.opacity = 1 - Math.abs(dx) / 400;
-  }
-
-  function onEnd(e) {
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    card.style.transform = `translateX(${dx}px) translateY(${dy}px) rotate(${dx * 0.07}deg)`;
+    card.style.opacity = String(1 - Math.abs(dx) / 400);
+  });
+  document.addEventListener('mouseup', e => {
     if (!isDragging) return;
-    isDragging = false;
-    const card = getTopCard();
-    if (!card) return;
-    card.classList.remove('swiping');
-    const pt = e.changedTouches ? e.changedTouches[0] : e;
-    const dx = pt.clientX - startX;
+    isDragging = false; card.classList.remove('swiping');
+    const dx = e.clientX - startX;
     if (dx > 80) doSwipe('like');
     else if (dx < -80) doSwipe('dislike');
     else { card.style.transform = ''; card.style.opacity = ''; }
-  }
-
-  stack.addEventListener('mousedown', onStart);
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onEnd);
-  stack.addEventListener('touchstart', onStart, { passive: true });
-  document.addEventListener('touchmove', onMove, { passive: true });
-  document.addEventListener('touchend', onEnd);
+  });
+  card.addEventListener('touchstart', e => {
+    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
+    isDragging = true; card.classList.add('swiping');
+    startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - startX, dy = e.touches[0].clientY - startY;
+    card.style.transform = `translateX(${dx}px) translateY(${dy}px) rotate(${dx * 0.07}deg)`;
+    card.style.opacity = String(1 - Math.abs(dx) / 400);
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (!isDragging) return;
+    isDragging = false; card.classList.remove('swiping');
+    const dx = e.changedTouches[0].clientX - startX;
+    if (dx > 80) doSwipe('like');
+    else if (dx < -80) doSwipe('dislike');
+    else { card.style.transform = ''; card.style.opacity = ''; }
+  });
 }

@@ -2,51 +2,88 @@
 {% block title %}Discover Chairs — CHAIR-MATCH{% endblock %}
 {% block head %}
 <style>
-.discover-wrap { max-width:480px; margin:0 auto; padding:2rem 1rem; }
-.discover-header { text-align:center; margin-bottom:1.5rem; }
+.discover-wrap { max-width:440px; margin:0 auto; padding:2rem 1rem; }
+.discover-header { text-align:center; margin-bottom:1rem; }
 .discover-header h1 { font-size:1.8rem; font-weight:800; }
 .discover-header p { color:var(--text2); font-size:0.9rem; }
-.swipe-stack { position:relative; height:520px; }
-.swipe-card {
-  position:absolute; top:0; left:0; right:0;
-  background:var(--card); border:1px solid var(--border);
-  border-radius:24px; padding:2rem;
-  box-shadow:0 20px 60px rgba(0,0,0,0.5);
-  transition:transform 0.3s ease, opacity 0.3s ease;
-  cursor:grab;
-  user-select:none;
+.swipe-hint { text-align:center; color:var(--text2); font-size:0.8rem; margin-bottom:0.8rem; }
+
+/* Stack wrapper — just reserves space for the shadow cards behind */
+.swipe-stack-wrap { position:relative; margin-bottom:1.5rem; }
+/* Ghost cards behind for depth effect */
+.swipe-stack-wrap::before,
+.swipe-stack-wrap::after {
+  content:'';
+  position:absolute;
+  left:50%; bottom:-8px;
+  width:92%; height:100%;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:24px;
+  transform:translateX(-50%);
+  z-index:0;
 }
-.swipe-card.swiping { transition:none; }
-.swipe-card.fly-left { transform:translateX(-150%) rotate(-20deg)!important; opacity:0; }
-.swipe-card.fly-right { transform:translateX(150%) rotate(20deg)!important; opacity:0; }
-.chair-emoji { font-size:5rem; text-align:center; margin-bottom:0.5rem; }
-.chair-code { text-align:center; font-size:2rem; font-weight:900; }
-.chair-location { text-align:center; color:var(--text2); font-size:0.9rem; margin-bottom:1rem; }
-.compat-big { text-align:center; font-size:3rem; font-weight:900; background:linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-.compat-label { text-align:center; color:var(--text2); font-size:0.85rem; margin-bottom:1rem; }
-.breakdown-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin:1rem 0; }
-.breakdown-item { background:var(--bg2); border-radius:10px; padding:0.6rem; text-align:center; }
-.breakdown-item .bi-label { font-size:0.72rem; color:var(--text2); }
-.breakdown-item .bi-val { font-size:1rem; font-weight:700; color:var(--primary); }
-.chair-tags { display:flex; flex-wrap:wrap; gap:0.4rem; justify-content:center; margin:0.8rem 0; }
-.chair-tag { background:rgba(108,99,255,0.15); border:1px solid rgba(108,99,255,0.3); color:#a89fff; padding:0.25rem 0.6rem; border-radius:6px; font-size:0.75rem; }
-.swipe-btns { display:flex; gap:1rem; justify-content:center; margin-top:1.5rem; }
-.btn-nope { background:rgba(255,82,82,0.15); border:2px solid var(--danger); color:var(--danger); font-size:1.1rem; padding:0.8rem 2rem; border-radius:50px; cursor:pointer; transition:all 0.2s; font-weight:700; }
-.btn-nope:hover { background:var(--danger); color:white; transform:scale(1.05); }
-.btn-like { background:rgba(233,30,140,0.15); border:2px solid var(--primary); color:var(--primary); font-size:1.1rem; padding:0.8rem 2rem; border-radius:50px; cursor:pointer; transition:all 0.2s; font-weight:700; }
-.btn-like:hover { background:var(--primary); color:white; transform:scale(1.05); }
+.swipe-stack-wrap::after { bottom:-16px; width:84%; z-index:-1; opacity:0.6; }
+
+/* The actual visible card */
+.swipe-card {
+  position:relative; z-index:1;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:24px; padding:1.5rem;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  cursor:grab; user-select:none;
+  transition:transform 0.3s ease, opacity 0.3s ease;
+}
+.swipe-card.fly-left  { transform:translateX(-150%) rotate(-20deg); opacity:0; pointer-events:none; }
+.swipe-card.fly-right { transform:translateX(150%)  rotate(20deg);  opacity:0; pointer-events:none; }
+.swipe-card.swiping   { transition:none; }
+
+.chair-emoji  { font-size:3.5rem; text-align:center; margin-bottom:0.2rem; }
+.chair-code   { text-align:center; font-size:1.8rem; font-weight:900; }
+.chair-location { text-align:center; color:var(--text2); font-size:0.85rem; margin-bottom:0.4rem; }
+.compat-big {
+  text-align:center; font-size:2.6rem; font-weight:900;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.compat-label { text-align:center; color:var(--text2); font-size:0.8rem; margin-bottom:0.6rem; }
+.breakdown-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.4rem; margin:0.6rem 0; }
+.breakdown-item { background:var(--bg2); border-radius:10px; padding:0.5rem; text-align:center; }
+.breakdown-item .bi-label { font-size:0.7rem; color:var(--text2); }
+.breakdown-item .bi-val   { font-size:0.95rem; font-weight:700; color:var(--primary); }
+.chair-tags { display:flex; flex-wrap:wrap; gap:0.3rem; justify-content:center; margin:0.5rem 0; }
+.chair-tag  { background:rgba(108,99,255,0.15); border:1px solid rgba(108,99,255,0.3); color:#a89fff; padding:0.2rem 0.5rem; border-radius:6px; font-size:0.72rem; }
+
+/* Buttons always at bottom of card */
+.card-actions { display:flex; align-items:center; justify-content:space-between; gap:0.6rem; margin-top:1rem; }
+.btn-nope {
+  flex:1; background:rgba(255,82,82,0.12); border:2px solid var(--danger);
+  color:var(--danger); font-size:1rem; padding:0.7rem 0; border-radius:50px;
+  cursor:pointer; transition:all 0.2s; font-weight:700;
+}
+.btn-nope:hover { background:var(--danger); color:white; }
+.btn-like {
+  flex:1; background:rgba(233,30,140,0.12); border:2px solid var(--primary);
+  color:var(--primary); font-size:1rem; padding:0.7rem 0; border-radius:50px;
+  cursor:pointer; transition:all 0.2s; font-weight:700;
+}
+.btn-like:hover { background:var(--primary); color:white; }
+.btn-details {
+  background:var(--bg2); border:1px solid var(--border); color:var(--text2);
+  font-size:0.8rem; padding:0.5rem 0.8rem; border-radius:10px; white-space:nowrap;
+}
+
 .match-overlay {
   position:fixed; inset:0; background:rgba(0,0,0,0.85);
   display:flex; align-items:center; justify-content:center;
   z-index:999; opacity:0; pointer-events:none; transition:opacity 0.3s;
 }
 .match-overlay.show { opacity:1; pointer-events:all; }
-.match-box { background:var(--card); border:2px solid var(--primary); border-radius:24px; padding:3rem; text-align:center; max-width:360px; animation:matchPop 0.4s ease; }
+.match-box { background:var(--card); border:2px solid var(--primary); border-radius:24px; padding:2.5rem; text-align:center; max-width:340px; animation:matchPop 0.4s ease; }
 @keyframes matchPop { from{transform:scale(0.5)} to{transform:scale(1)} }
-.match-title { font-size:2.5rem; font-weight:900; color:var(--primary); }
+.match-title { font-size:2.2rem; font-weight:900; color:var(--primary); }
 .empty-state { text-align:center; padding:4rem 2rem; }
 .empty-state .big-emoji { font-size:4rem; margin-bottom:1rem; }
-.swipe-hint { text-align:center; color:var(--text2); font-size:0.8rem; margin-bottom:1rem; }
 </style>
 {% endblock %}
 {% block content %}
@@ -58,10 +95,11 @@
 
   {% if chair_data %}
   <div class="swipe-hint">← Swipe left to pass · Swipe right to like →</div>
-  <div class="swipe-stack" id="swipeStack">
-    {% for item in chair_data[:5] %}
-    <div class="swipe-card" data-chair-id="{{ item.chair.id }}" data-compat="{{ item.compat }}"
-         style="z-index:{{ 100 - loop.index0 }};transform:rotate({{ loop.index0 * -1 }}deg) translateY({{ loop.index0 * 4 }}px)">
+
+  <div class="swipe-stack-wrap">
+    <!-- Only render top card; JS cycles through remaining -->
+    {% set item = chair_data[0] %}
+    <div class="swipe-card" id="topCard" data-chair-id="{{ item.chair.id }}" data-compat="{{ item.compat }}">
       <div class="chair-emoji">💺</div>
       <div class="chair-code">{{ item.chair.chair_code }}</div>
       <div class="chair-location">{{ item.chair.classroom.name }} · Row {{ item.chair.row }}</div>
@@ -69,30 +107,34 @@
       <div class="compat-label">COMPATIBILITY MATCH</div>
       <div class="breakdown-grid">
         <div class="breakdown-item"><div class="bi-label">🪟 Window</div><div class="bi-val">{{ item.breakdown.window|round|int }}%</div></div>
-        <div class="breakdown-item"><div class="bi-label">❄️ AC</div><div class="bi-val">{{ item.breakdown.ac|round|int }}%</div></div>
-        <div class="breakdown-item"><div class="bi-label">👀 Visibility</div><div class="bi-val">{{ item.breakdown.visibility|round|int }}%</div></div>
+        <div class="breakdown-item"><div class="bi-label">👀 Board Visibility</div><div class="bi-val">{{ item.breakdown.visibility|round|int }}%</div></div>
         <div class="breakdown-item"><div class="bi-label">⚡ Charging</div><div class="bi-val">{{ item.breakdown.charging|round|int }}%</div></div>
+        <div class="breakdown-item"><div class="bi-label">🪑 Row Position</div><div class="bi-val">{{ item.breakdown.front_back|round|int }}%</div></div>
       </div>
       <div class="chair-tags">
         {% if item.chair.row >= 5 %}<span class="chair-tag">🦥 Back Row</span>{% endif %}
         {% if item.chair.row <= 2 %}<span class="chair-tag">👑 Front Row</span>{% endif %}
         {% if item.chair.window_score >= 7 %}<span class="chair-tag">🪟 Window Seat</span>{% endif %}
         {% if item.chair.charging %}<span class="chair-tag">⚡ Charging</span>{% endif %}
-        {% if item.chair.ac_score >= 7 %}<span class="chair-tag">❄️ Strong AC</span>{% endif %}
       </div>
-      <div style="text-align:center;margin-top:0.5rem;">
-        <a href="{{ url_for('chair_detail', chair_id=item.chair.id) }}" class="btn btn-outline btn-sm">View Details</a>
+      <div class="card-actions">
+        <button class="btn-nope" onclick="doSwipe('dislike')">👎 NOPE</button>
+        <a href="{{ url_for('chair_detail', chair_id=item.chair.id) }}" class="btn btn-details">Details</a>
+        <button class="btn-like" onclick="doSwipe('like')">❤️ LIKE</button>
       </div>
     </div>
-    {% endfor %}
   </div>
-  <div class="swipe-btns">
-    <button class="btn-nope" onclick="doSwipe('dislike')">👎 NOPE</button>
-    <button class="btn-like" onclick="doSwipe('like')">❤️ LIKE</button>
+
+  <div style="text-align:center;color:var(--text2);font-size:0.85rem;">
+    <span id="remainCount">{{ chair_data|length }}</span> chairs remaining
   </div>
-  <div style="text-align:center;margin-top:1rem;color:var(--text2);font-size:0.85rem;">
-    {{ chair_data|length }} chairs remaining
-  </div>
+
+  <!-- Preload remaining chair data for JS cycling -->
+  <script>
+    const CHAIRS = {{ chair_data[1:] | map(attribute='chair_json') | list | tojson | safe }};
+    const COMPATS = {{ chair_data[1:] | map(attribute='compat') | list | tojson | safe }};
+    const BREAKDOWNS = {{ chair_data[1:] | map(attribute='breakdown') | list | tojson | safe }};
+  </script>
 
   {% else %}
   <div class="empty-state">

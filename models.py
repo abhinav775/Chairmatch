@@ -42,7 +42,7 @@ class Classroom(db.Model):
     name = db.Column(db.String(100), nullable=False)
     rows = db.Column(db.Integer, default=6)
     columns = db.Column(db.Integer, default=5)
-    chairs = db.relationship('Chair', backref='classroom', lazy=True)
+    chairs = db.relationship('Chair', backref='classroom', lazy=True, cascade='all, delete-orphan')
 
 class Chair(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -57,8 +57,8 @@ class Chair(db.Model):
     comfort_score = db.Column(db.Float, default=5)
     charging = db.Column(db.Boolean, default=False)
     qr_token = db.Column(db.String(64), unique=True, default=lambda: str(uuid.uuid4()))
-    swipes = db.relationship('Swipe', backref='chair', lazy=True)
-    reservations = db.relationship('Reservation', backref='chair', lazy=True)
+    swipes = db.relationship('Swipe', backref='chair', lazy=True, cascade='all, delete-orphan')
+    reservations = db.relationship('Reservation', backref='chair', lazy=True, cascade='all, delete-orphan')
 
     @property
     def front_back_score(self):

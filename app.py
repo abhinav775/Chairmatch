@@ -195,10 +195,11 @@ def swipe():
         s = Swipe(user_id=current_user.id, chair_id=chair_id, action=action)
         db.session.add(s)
         db.session.commit()
-    new_unlocks = check_achievements(current_user)
+
     pref = current_user.preference
     chair = Chair.query.get(chair_id)
     compat = compute_compatibility(pref, chair)[0] if pref else 0
+    new_unlocks = check_achievements(current_user)
     return jsonify({'status': 'ok', 'compat': compat, 'achievements': new_unlocks})
 
 @app.route('/chair/<int:chair_id>')

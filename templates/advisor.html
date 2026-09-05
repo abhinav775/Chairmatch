@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}AI Chair Advisor — CHAIR-MATCH{% endblock %}
+{% block title %}AI Seat Advisor — SEAT SYNC{% endblock %}
 {% block head %}
 <style>
 .advisor-wrap { max-width:700px; margin:0 auto; padding:2rem 1.5rem; }
@@ -23,7 +23,7 @@
 {% endblock %}
 {% block content %}
 <div class="advisor-wrap">
-  <h1 class="section-title">🤖 <span>AI Chair Advisor</span></h1>
+  <h1 class="section-title">🤖 <span>AI Seat Advisor</span></h1>
   <p style="color:var(--text2);margin-bottom:1.5rem;">Describe your ideal seat. I'll find your matches. (Powered by a very serious algorithm.)</p>
 
   <div class="suggestion-chips">
@@ -38,8 +38,8 @@
     <div class="chat-msg">
       <div class="chat-avatar bot">🤖</div>
       <div class="chat-bubble">
-        <strong>Chair Advisor</strong><br>
-        Hello! Tell me what you're looking for in a chair. I'll analyze all available seats and find your best matches.<br><br>
+        <strong>Seat Advisor</strong><br>
+        Hello! Tell me what you're looking for in a seat. I'll analyze all available chairs and find your best matches.<br><br>
         <em style="color:var(--text2);">"We analyzed 30 chairs. This is getting serious."</em>
       </div>
     </div>
@@ -52,7 +52,7 @@
     <div class="chat-msg">
       <div class="chat-avatar bot">🤖</div>
       <div class="chat-bubble">
-        <strong>Chair Advisor</strong><br>
+        <strong>Seat Advisor</strong><br>
         I analyzed all available chairs based on your request. Here are your top matches:<br><br>
         {% set medals = ['🥇', '🥈', '🥉'] %}
         {% for chair, compat, bd in result.chairs %}

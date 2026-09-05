@@ -600,17 +600,15 @@ def ensure_admin():
             email='admin@seatsync.com',
             role='admin'
         )
-        admin.set_password('admin123')
         db.session.add(admin)
-        db.session.commit()
-        print("Admin account created successfully.")
-    else:
-        # Make sure the existing account has admin privileges.
-        if admin.role != 'admin':
-            admin.role = 'admin'
-            db.session.commit()
 
-        print("Admin account already exists.")
+    # Ensure the Render database has the correct admin credentials.
+    # This only updates the dedicated admin account.
+    admin.role = 'admin'
+    admin.set_password('admin123')
+
+    db.session.commit()
+    print("Admin account ready.")
 
 
 with app.app_context():

@@ -590,9 +590,33 @@ def seed_data():
     db.session.commit()
     print("Demo data seeded successfully.")
 
+# ── Ensure Admin Account ─────────────────────────────────────────────────────
+def ensure_admin():
+    admin = User.query.filter_by(email='admin@seatsync.com').first()
+
+    if not admin:
+        admin = User(
+            name='Admin',
+            email='admin@seatsync.com',
+            role='admin'
+        )
+        admin.set_password('admin123')
+        db.session.add(admin)
+        db.session.commit()
+        print("Admin account created successfully.")
+    else:
+        # Make sure the existing account has admin privileges.
+        if admin.role != 'admin':
+            admin.role = 'admin'
+            db.session.commit()
+
+        print("Admin account already exists.")
+
+
 with app.app_context():
     db.create_all()
     seed_data()
+    ensure_admin()
 
 if __name__ == '__main__':
     app.run(debug=True)

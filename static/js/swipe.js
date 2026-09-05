@@ -12,16 +12,6 @@ else {
     }).then(r => r.json());
   }
 
-  function showMatchOverlay(compat, code) {
-    if (compat >= 85) {
-      document.getElementById('matchMsg').textContent =
-        `Chair ${code} has a lot in common with you. ${compat}% compatibility!`;
-      const ov = document.getElementById('matchOverlay');
-      ov.classList.add('show');
-      setTimeout(() => ov.classList.remove('show'), 3000);
-    }
-  }
-
   function loadNextCard() {
     if (idx >= CHAIRS.length) {
       card.innerHTML = `<div style="text-align:center;padding:3rem 1rem;">
@@ -79,13 +69,13 @@ else {
     const code = card.querySelector('.chair-code') ? card.querySelector('.chair-code').textContent.trim() : '';
 
     card.classList.add(action === 'like' ? 'fly-right' : 'fly-left');
+    setTimeout(loadNextCard, 320);
+
     sendSwipe(chairId, action).then(data => {
-      if (action === 'like') showMatchOverlay(compat, code);
       if (data.achievements && data.achievements.length) {
         data.achievements.forEach(a => showToast('🏅 Achievement: ' + a, 'var(--warning)'));
       }
     });
-    setTimeout(loadNextCard, 320);
   };
 
   // Drag to swipe

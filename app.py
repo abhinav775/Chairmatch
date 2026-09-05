@@ -515,7 +515,7 @@ def seed_data():
         db.session.add(Achievement(key=key, name=name, description=desc, icon=icon, points=pts))
 
     # Admin
-    admin = User(name='Admin', email='admin@chairmatch.com', role='admin')
+    admin = User(name='Admin', email='admin@seatsync.com', role='admin')
     admin.set_password('admin123')
     db.session.add(admin)
 

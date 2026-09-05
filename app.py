@@ -146,7 +146,7 @@ def personality():
         'Window obsession':      round(pref.window * 10),
         'Board avoidance':       round(pref.visibility * 10),
         'Charging dependency':   round(pref.charging * 10),
-        'Comfort seeking':       round(pref.comfort * 10),
+        'Sleeping comfort':      round(pref.comfort * 10),
     }
     return render_template('personality.html', icon=icon, title=title, desc=desc, stats=stats)
 

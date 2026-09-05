@@ -73,15 +73,6 @@
   font-size:0.8rem; padding:0.5rem 0.8rem; border-radius:10px; white-space:nowrap;
 }
 
-.match-overlay {
-  position:fixed; inset:0; background:rgba(0,0,0,0.85);
-  display:flex; align-items:center; justify-content:center;
-  z-index:999; opacity:0; pointer-events:none; transition:opacity 0.3s;
-}
-.match-overlay.show { opacity:1; pointer-events:all; }
-.match-box { background:var(--card); border:2px solid var(--primary); border-radius:24px; padding:2.5rem; text-align:center; max-width:340px; animation:matchPop 0.4s ease; }
-@keyframes matchPop { from{transform:scale(0.5)} to{transform:scale(1)} }
-.match-title { font-size:2.2rem; font-weight:900; color:var(--primary); }
 .empty-state { text-align:center; padding:4rem 2rem; }
 .empty-state .big-emoji { font-size:4rem; margin-bottom:1rem; }
 </style>
@@ -146,14 +137,6 @@
   {% endif %}
 </div>
 
-<div class="match-overlay" id="matchOverlay">
-  <div class="match-box">
-    <div style="font-size:3rem;margin-bottom:0.5rem;">💘</div>
-    <div class="match-title">IT'S A MATCH!</div>
-    <div id="matchMsg" style="color:var(--text2);margin:1rem 0;"></div>
-    <button class="btn btn-primary" onclick="document.getElementById('matchOverlay').classList.remove('show')">Keep Swiping 💺</button>
-  </div>
-</div>
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/swipe.js') }}"></script>

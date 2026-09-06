@@ -107,11 +107,12 @@ For Software:
 
 ### Project Demo
 # Video
-https://drive.google.com/file/d/1aCoUy7J_9rybZ-8n1wMFc2IGDjbozxIp/view?usp=sharing
+https://drive.google.com/file/d/1O-2xK7mRrdiH4fyXw-hFx7mzgdP1m7vF/view?usp=sharing
 
 *this shows the home page of seatsync and the logins and give pereferences for seat and accroding to that cards for swiping appears we can reject of accept according to it*
 
 # Additional Demos
+https://seatsync-1.onrender.com/
 
 
 ## Team Contributions

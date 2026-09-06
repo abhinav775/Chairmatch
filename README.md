@@ -101,8 +101,9 @@ For Software:
 *The map which shows the classroom layout*
 
 # Diagrams
-![Workflow](Add your workflow/architecture diagram here)
-*Add caption explaining your workflow*
+<img width="1312" height="1199" alt="ChatGPT Image Sep 6, 2026, 07_42_56 AM" src="https://github.com/user-attachments/assets/6cdf59b6-75b0-4ae8-a44f-759785f9295a" />
+
+*illustrating the complete flow from user registration and preference setup to chair discovery, swipe-based matching, reservation, QR verification, classroom mapping, and supporting modules such as the Advisor, Achievements, Analytics, and Admin Panel.*
 
 ### Project Demo
 # Video

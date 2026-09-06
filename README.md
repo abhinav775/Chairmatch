@@ -109,7 +109,7 @@ For Software:
 # Video
 https://drive.google.com/file/d/1aCoUy7J_9rybZ-8n1wMFc2IGDjbozxIp/view?usp=sharing
 
-*Explain what the video demonstrates*
+*this shows the home page of seatsync and the logins and give pereferences for seat and accroding to that cards for swiping appears we can reject of accept according to it*
 
 # Additional Demos
 

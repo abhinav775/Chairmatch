@@ -89,50 +89,32 @@ gunicorn app:app
 For Software:
 
 # Screenshots (Add at least 3)
-![Screenshot1](Add screenshot 1 here with proper name)
-*Add caption explaining what this shows*
+![<img width="1907" height="905" alt="Screenshot 2026-09-06 060653" src="https://github.com/user-attachments/assets/4539f248-b859-404f-9501-c58cda3c6021" />
 
-![Screenshot2](Add screenshot 2 here with proper name)
-*Add caption explaining what this shows*
+*Swiping window where we can check the matching chairs*
 
-![Screenshot3](Add screenshot 3 here with proper name)
-*Add caption explaining what this shows*
+!<img width="1872" height="890" alt="ai advisor" src="https://github.com/user-attachments/assets/f456da00-9a69-42fa-8e35-145b0be0c632" />
+*Ai advisor which gives the matching seats according to what we say*
+
+<img width="1902" height="932" alt="classroom map" src="https://github.com/user-attachments/assets/01752cd7-9ed6-4691-9af8-98cfef762997" />
+
+*The map which shows the classroom layout*
 
 # Diagrams
 ![Workflow](Add your workflow/architecture diagram here)
 *Add caption explaining your workflow*
 
-For Hardware:
-
-# Schematic & Circuit
-![Circuit](Add your circuit diagram here)
-*Add caption explaining connections*
-
-![Schematic](Add your schematic diagram here)
-*Add caption explaining the schematic*
-
-# Build Photos
-![Components](Add photo of your components here)
-*List out all components shown*
-
-![Build](Add photos of build process here)
-*Explain the build steps*
-
-![Final](Add photo of final product here)
-*Explain the final build*
-
 ### Project Demo
 # Video
-[Add your demo video link here]
+[
+
+]
 *Explain what the video demonstrates*
 
 # Additional Demos
-[Add any extra demo materials/links]
+
 
 ## Team Contributions
-- [Name 1]: [Specific contributions]
-- [Name 2]: [Specific contributions]
-- [Name 3]: [Specific contributions]
 
 ---
 Made with ❤️ at TinkerHub Useless Projects 

@@ -106,9 +106,8 @@ For Software:
 
 ### Project Demo
 # Video
-[
+https://drive.google.com/file/d/1aCoUy7J_9rybZ-8n1wMFc2IGDjbozxIp/view?usp=sharing
 
-]
 *Explain what the video demonstrates*
 
 # Additional Demos

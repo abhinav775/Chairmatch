@@ -79,7 +79,11 @@ git clone https://github.com/abhinav775/Seatsync.git
 cd Seatsync
 
 # Run
-[commands]
+python app.py
+
+For production deployment:
+
+gunicorn app:app
 
 ### Project Documentation
 For Software:

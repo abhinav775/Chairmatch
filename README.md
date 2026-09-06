@@ -2,47 +2,88 @@
 
 
 
-# [Project Name] 🎯
+# Seatsync🎯
 
 
 ## Basic Details
-### Team Name: [Name]
+### Team Name: Abhinavgopal M B
 
 
 ### Team Members
-- Team Lead: [Name] - [College]
-- Member 2: [Name] - [College]
-- Member 3: [Name] - [College]
+- Team Lead: Abhinavgopal M B [SCMS SCHOOL OF ENGINEERING AND TECHNOLOGY]
 
 ### Project Description
-[2-3 lines about what your project does]
+Seatsync is an  sophisticated platform that helps college students find their perfect classroom chair. It matches students with chairs based on their seating preferences, allows them to like/dislike chairs, reserve their perfect match, and verify the chair using a QR code.
 
 ### The Problem (that doesn't exist)
-[What ridiculous problem are you solving?]
+Every college student faces the same devastating question:
+
+"Where am I going to sit today?"
+
+Should you sit in the back? Near a charging socket? Far away from the teacher?
+
+This completely unnecessary problem has caused countless minutes of indecision, strategic seat-hunting, and arguments over the "best" chair.
+
+We decided this clearly needed a technological solution.
 
 ### The Solution (that nobody asked for)
-[How are you solving it? Keep it fun!]
+Introducing ChairMatch — a dating-style matchmaking platform where students don't search for people...
+
+They search for chairs. 💺❤️
+
+Students create a seating profile by selecting their preferences for:
+
+Front/back position
+Window proximity
+AC exposure
+Teacher visibility
+Noise level
+Comfort
+Charging availability
+
+Our recommendation engine compares these preferences with the characteristics of every chair and calculates a compatibility percentage.
+
+Students can then:
+
+💘 Discover and swipe through chairs
+❤️ Like their favorite chairs
+❌ Reject chairs that aren't their type
+🎯 Get personalized chair recommendations
+📅 Reserve their perfect chair
+📱 Scan a QR code to verify the physical chair
+🧠 Discover their seating personality
+📊 Explore chair popularity and classroom analytics
+🏆 Unlock achievements and compete on leaderboards
 
 ## Technical Details
 ### Technologies/Components Used
 For Software:
-- [Languages used]
-- [Frameworks used]
-- [Libraries used]
-- [Tools used]
+Languages used: Python, HTML, CSS, JavaScript
+Frameworks used: Flask
+Libraries used: Flask-SQLAlchemy, Flask-Login, Werkzeug, QRCode, Gunicorn
+Database: SQLite / PostgreSQL
+ORM: SQLAlchemy
+Templating: Jinja2
+Tools used: Git, GitHub, VS Code, Render
 
 For Hardware:
-- [List main components]
-- [List specifications]
-- [List tools required]
+No hardware components required.
+The project is completely software-based.
+pip install -r requirements.txt
 
 ### Implementation
 For Software:
 # Installation
-[commands]
+git clone https://github.com/abhinav775/Seatsync.git
+
+cd Seatsync
 
 # Run
-[commands]
+python app.py
+
+For production deployment:
+
+gunicorn app:app
 
 ### Project Documentation
 For Software:

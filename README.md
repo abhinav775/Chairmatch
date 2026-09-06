@@ -74,8 +74,9 @@ pip install -r requirements.txt
 ### Implementation
 For Software:
 # Installation
-git clone https://github.com/abhinav775/Chairmatch.git
-cd Chairmatch
+git clone https://github.com/abhinav775/Seatsync.git
+
+cd Seatsync
 
 # Run
 [commands]

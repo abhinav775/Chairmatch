@@ -156,18 +156,9 @@ def personality():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # ── Classroom helper ─────────────────────────────────────────────────────────
-    def get_user_classroom():
-        class_name = (current_user.class_name or '').strip()
-        if not class_name:
-        return None
-
-    classrooms = Classroom.query.all()
-    for classroom in classrooms:
-        if classroom.name.strip().lower() == class_name.lower():
-            return classroom
-
-    return None
+    if current_user.role == 'admin':
+        return redirect(url_for('admin'))
+    return redirect(url_for('discover'))
 
 @app.route('/discover')
 @login_required
@@ -175,25 +166,9 @@ def discover():
     pref = current_user.preference
     if not pref:
         return redirect(url_for('setup_profile'))
-
-    # Get only the classroom assigned to this student
-    user_classroom = get_user_classroom()
-
-    if not user_classroom:
-        flash(
-            f'No classroom found for "{current_user.class_name}". '
-            'Please make sure your class matches a classroom created by the admin.',
-            'error'
-        )
-        return redirect(url_for('classroom'))
-
     swiped_ids = {s.chair_id for s in current_user.swipes}
-
-    # IMPORTANT: only show chairs from the student's classroom
-    chairs = Chair.query.filter_by(classroom_id=user_classroom.id).all()
-
+    chairs = Chair.query.all()
     unseen = [c for c in chairs if c.id not in swiped_ids]
-
     chair_data = []
     for c in unseen:
         compat, breakdown = compute_compatibility(pref, c)
@@ -210,9 +185,7 @@ def discover():
                 'charging': c.charging
             }
         })
-
     chair_data.sort(key=lambda x: -x['compat'])
-
     return render_template('discover.html', chair_data=chair_data)
 
 @app.route('/swipe', methods=['POST'])
@@ -238,78 +211,26 @@ def chair_detail(chair_id):
     chair = Chair.query.get_or_404(chair_id)
     pref = current_user.preference
     compat, breakdown = compute_compatibility(pref, chair) if pref else (0, {})
-
-    # Only consider today's reservations
-    today = str(date.today())
-
-    active_res = Reservation.query.filter_by(
-        user_id=current_user.id,
-        chair_id=chair_id,
-        status='active',
-        date=today
-    ).first()
-
-    chair_reserved = Reservation.query.filter_by(
-        chair_id=chair_id,
-        status='active',
-        date=today
-    ).first()
-
-    return render_template(
-        'chair.html',
-        chair=chair,
-        compat=compat,
-        breakdown=breakdown,
-        active_res=active_res,
-        chair_reserved=chair_reserved
-    )
+    active_res = Reservation.query.filter_by(user_id=current_user.id, chair_id=chair_id, status='active').first()
+    chair_reserved = Reservation.query.filter_by(chair_id=chair_id, status='active').first()
+    return render_template('chair.html', chair=chair, compat=compat, breakdown=breakdown,
+                           active_res=active_res, chair_reserved=chair_reserved)
 
 @app.route('/reserve/<int:chair_id>', methods=['POST'])
 @login_required
 def reserve(chair_id):
-    # Reservations are per day
-    today = str(date.today())
-
-    existing = Reservation.query.filter_by(
-        user_id=current_user.id,
-        status='active',
-        date=today
-    ).first()
-
+    existing = Reservation.query.filter_by(user_id=current_user.id, status='active').first()
     if existing:
-        return jsonify({
-            'status': 'error',
-            'msg': 'You already have an active reservation for today. Cancel it first.'
-        })
-
-    taken = Reservation.query.filter_by(
-        chair_id=chair_id,
-        status='active',
-        date=today
-    ).first()
-
+        return jsonify({'status': 'error', 'msg': 'You already have an active reservation. Cancel it first.'})
+    taken = Reservation.query.filter_by(chair_id=chair_id, status='active').first()
     if taken:
-        return jsonify({
-            'status': 'error',
-            'msg': 'This chair is already reserved by someone else today.'
-        })
-
-    r = Reservation(
-        user_id=current_user.id,
-        chair_id=chair_id,
-        date=today
-    )
-
+        return jsonify({'status': 'error', 'msg': 'This chair is already reserved by someone else.'})
+    r = Reservation(user_id=current_user.id, chair_id=chair_id, date=str(date.today()))
     db.session.add(r)
     current_user.points += 5
     db.session.commit()
-
     check_achievements(current_user)
-
-    return jsonify({
-        'status': 'ok',
-        'msg': 'Congratulations. You\'ve committed to a chair. 💺'
-    })
+    return jsonify({'status': 'ok', 'msg': 'Congratulations. You\'ve committed to a chair. 💺'})
 
 @app.route('/cancel-reservation/<int:res_id>', methods=['POST'])
 @login_required
@@ -414,11 +335,10 @@ def achievements():
 @login_required
 def advisor():
     result = None
-
     if request.method == 'POST':
         msg = request.form.get('message', '').lower()
         pref = current_user.preference
-
+        # Rule-based keyword extraction
         temp_pref = Preference(
             user_id=current_user.id,
             front_back=pref.front_back if pref else 5,
@@ -427,48 +347,16 @@ def advisor():
             charging=pref.charging if pref else 5,
             comfort=pref.comfort if pref else 5,
         )
-
-        # Rule-based keyword extraction
-        if any(w in msg for w in ['back', 'last', 'rear']):
-            temp_pref.front_back = 9
-
-        if any(w in msg for w in ['front', 'first']):
-            temp_pref.front_back = 2
-
-        if any(w in msg for w in ['window', 'outside', 'view']):
-            temp_pref.window = 9
-
-        if any(w in msg for w in [
-            'invisible', 'hide', 'notice', 'seen', 'avoid', 'board'
-        ]):
-            temp_pref.visibility = 9
-
-        if any(w in msg for w in [
-            'charge', 'charging', 'plug', 'socket', 'power'
-        ]):
-            temp_pref.charging = 9
-
-        # Only recommend chairs from student's classroom
-        user_classroom = get_user_classroom()
-        chairs = user_classroom.chairs if user_classroom else []
-
-        scored = [
-            (c, compute_compatibility(temp_pref, c))
-            for c in chairs
-        ]
-
+        if any(w in msg for w in ['back', 'last', 'rear']): temp_pref.front_back = 9
+        if any(w in msg for w in ['front', 'first']): temp_pref.front_back = 2
+        if any(w in msg for w in ['window', 'outside', 'view']): temp_pref.window = 9
+        if any(w in msg for w in ['invisible', 'hide', 'notice', 'seen', 'avoid', 'board']): temp_pref.visibility = 9
+        if any(w in msg for w in ['charge', 'charging', 'plug', 'socket', 'power']): temp_pref.charging = 9
+        chairs = Chair.query.all()
+        scored = [(c, compute_compatibility(temp_pref, c)) for c in chairs]
         scored.sort(key=lambda x: -x[1][0])
-
         top3 = scored[:3]
-
-        result = {
-            'query': msg,
-            'chairs': [
-                (c, s, bd)
-                for c, (s, bd) in top3
-            ]
-        }
-
+        result = {'query': msg, 'chairs': [(c, s, bd) for c, (s, bd) in top3]}
     return render_template('advisor.html', result=result)
 
 @app.route('/analytics')
@@ -551,20 +439,10 @@ def add_classroom():
     c = Classroom(name=name, rows=rows, columns=cols)
     db.session.add(c)
     db.session.flush()
-    def get_row_label(row_number):
-    label = ''
-    n = row_number
-
-    while n > 0:
-        n, remainder = divmod(n - 1, 26)
-        label = chr(65 + remainder) + label
-
-    return label
-
-
-for r in range(1, rows + 1):
-    for col in range(1, cols + 1):
-        code = f"{get_row_label(r)}{col}"
+    row_labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    for r in range(1, rows + 1):
+        for col in range(1, cols + 1):
+            code = f"{row_labels[r-1]}{col}"
             chair = Chair(classroom_id=c.id, chair_code=code, row=r, col=col,
                           window_score=round(random.uniform(1, 10), 1),
                           ac_score=round(random.uniform(1, 10), 1),
